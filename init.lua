@@ -211,6 +211,9 @@ local mpris, mpris_timer = awful.widget.watch(
 	main_player = new_main_player
         widget:set_text(content_text)
         mpris_popup:setup(mpris_popup_rows)
+	if #mpris_popup_rows == 0 and mpris_popup.visible then
+	    mpris_popup.visible = not mpris_popup.visible
+	end
     end
 )
 
