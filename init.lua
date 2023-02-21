@@ -4,10 +4,10 @@
 -- Link: https://github.com/demingongo
 -- Availability: https://github.com/demingongo/awesomewm-mpris-widget
 
--- TODO: preferred player 
 -- TODO: better default path fo script and icons
 -- TODO: support more MPRIS clients
 -- TODO: optional text when no there's no client
+-- TODO: preferred player 
 -- TODO: Find a way to display artUrl (download it and cache it maybe?)
 
 local gears = require("gears")
