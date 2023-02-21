@@ -4,9 +4,8 @@
 -- Link: https://github.com/demingongo
 -- Availability: https://github.com/demingongo/awesomewm-mpris-widget
 
--- TODO: define the player (--player=) for each action (play-pause, ...)
+
 -- TODO: support arguments to change some default properties
--- TODO: from popup, select the player to control
 -- TODO: Find a way to display artUrl (download it and cache it maybe?)
 
 local gears = require("gears")
@@ -52,6 +51,8 @@ local function init_mpris_widget(args)
 local timeout = 3
 local max_chars = 36
 
+local main_player = ""
+
 local mpris_popup = awful.popup {
     ontop = true,
     visible = false, -- should be hidden when created
@@ -78,6 +79,7 @@ local mpris, mpris_timer = awful.widget.watch(
             return
         end
 
+	local new_main_player = ""
         local content_text = ""
         local mpris_popup_rows = { layout = wibox.layout.fixed.vertical }
         local players_info = {}
@@ -152,7 +154,8 @@ local mpris, mpris_timer = awful.widget.watch(
                     elseif mpris_now.title == "N/A" then
                         content_w = mpris_now.artist
                     end
-                    if content_text == "" then
+                    if content_text == "" or main_player ~= "" and mpris_now.player_name == main_player then
+			new_main_player = mpris_now.player_name
                         content_text = ellipsize(mpris_now.state ..state_separator .. content_w, max_chars)
                     end
 
@@ -191,11 +194,21 @@ local mpris, mpris_timer = awful.widget.watch(
                         bg = beautiful.bg_normal,
                         widget = wibox.container.background
                     }
+		    popup_row:connect_signal("button::release", function(self, _, _, button)
+			if button == 1 then
+			    main_player = mpris_now.player_name
+			end
+		    end)
 		    -- add row
-                    table.insert(mpris_popup_rows, popup_row)
-                end
+		    if mpris_now.player_name == new_main_player then
+			table.insert(mpris_popup_rows, 1, popup_row)
+		    else
+			table.insert(mpris_popup_rows, popup_row)
+		    end
+        	end
         end
 
+	main_player = new_main_player
         widget:set_text(content_text)
         mpris_popup:setup(mpris_popup_rows)
     end
@@ -205,7 +218,11 @@ local mpris, mpris_timer = awful.widget.watch(
 mpris:connect_signal("button::release", function(self, _, _, button, _, find_widgets_result)
     if button == 1 then
         -- play/pause
-        awful.spawn("playerctl play-pause", false)
+	local cmd = "playerctl play-pause"
+	if main_player ~= "" then
+	    cmd = cmd .. " --player=" .. main_player
+	end
+        awful.spawn(cmd, false)
     elseif button == 3 then
         -- display details
         if mpris_popup.visible then
