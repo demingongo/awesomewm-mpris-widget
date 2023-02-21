@@ -4,8 +4,7 @@
 -- Link: https://github.com/demingongo
 -- Availability: https://github.com/demingongo/awesomewm-mpris-widget
 
--- TODO: better default path fo script and icons
--- TODO: support more MPRIS clients
+-- TODO: support more MPRIS clients for custom icons
 -- TODO: optional text when no there's no client
 -- TODO: preferred player 
 -- TODO: Find a way to display artUrl (download it and cache it maybe?)
@@ -16,13 +15,14 @@ local awful = require("awful")
 local escape_f = require("awful.util").escape;
 local beautiful = require("beautiful")
 
-local get_players_metadata_script_path = os.getenv("HOME") .. "/.local/bin/get_players_metadata.sh"
+local get_players_metadata_script_path = os.getenv("HOME") .. "/.local/bin/list_players_metadata"
 
 local media_icons = {
   default = os.getenv("HOME") .. "/.icons/candy-icons/apps/scalable/juk.svg",
   firefox = os.getenv("HOME") .. "/.icons/candy-icons/apps/scalable/firefox.svg",
   spotify = os.getenv("HOME") .. "/.icons/candy-icons/apps/scalable/spotify-client.svg",
-  totem = "/usr/share/icons/hicolor/scalable/apps/org.gnome.Totem.svg" 
+  totem = "/usr/share/icons/hicolor/scalable/apps/org.gnome.Totem.svg",
+  rhythmbox = "/usr/share/icons/hicolor/scalable/apps/org.gnome.Rhythmbox3.svg"
 }
 
 local function ellipsize(text, length)
@@ -39,11 +39,22 @@ local function initProps(props)
 		params = props
 	end
 
+	-- Primary
+	--
+
+	result.widget_dir = type(params.widget_dir) == "string" 
+		and params.widget_dir ~= "" 
+		and params.widget_dir
+		or nil
+
 	-- Function
 	--
 
 	result.script_path =  type(params.metadata_script_path) == "string" 
-		and params.metadata_script_path or get_players_metadata_script_path
+		and params.metadata_script_path ~= "" 
+		and params.metadata_script_path
+		or ( result.widget_dir and result.widget_dir .. "/bin/list_players_metadata" )
+		or get_players_metadata_script_path
 
 	result.ignore_player = type(params.ignore_player) == "string" and params.ignore_player or ""
 
@@ -52,11 +63,17 @@ local function initProps(props)
 	-- Style
 	--
 
-	result.font = type(params.font) == "string" and params.font or beautiful.font
+	result.font = type(params.font) == "string" 
+		and params.font
+		or beautiful.font
 	
-	result.fg = type(params.fg) == "string" and params.fg or beautiful.fg_normal
+	result.fg = type(params.fg) == "string" 
+		and params.fg
+		or beautiful.fg_normal
 	
-	result.bg = type(params.bg) == "string" and params.bg or beautiful.bg_normal
+	result.bg = type(params.bg) == "string"  
+		and params.bg
+		or beautiful.bg_normal
 
 	result.popup_border_width = type(params.popup_border_width) == "number" 
 		and params.popup_border_width or 1
@@ -65,16 +82,29 @@ local function initProps(props)
 		and params.popup_border_color or beautiful.bg_focus
 
 	result.media_icons_default = type(params.media_icons_default) == "string" 
-		and params.media_icons_default or media_icons.default
+		and params.media_icons_default 
+		or ( result.widget_dir and result.widget_dir .. "/icons/candy-icons/juk.svg" )
+		or media_icons.default
 	
 	result.media_icons_spotify = type(params.media_icons_spotify) == "string" 
-		and params.media_icons_spotify or media_icons.spotify
+		and params.media_icons_spotify
+		or ( result.widget_dir and result.widget_dir .. "/icons/candy-icons/spotify-client.svg" )
+		or media_icons.spotify
 	
 	result.media_icons_firefox = type(params.media_icons_firefox) == "string" 
-		and params.media_icons_firefox or media_icons.firefox
+		and params.media_icons_firefox 
+		or ( result.widget_dir and result.widget_dir .. "/icons/candy-icons/firefox.svg" )
+		or media_icons.firefox
 	
 	result.media_icons_totem = type(params.media_icons_totem) == "string" 
-		and params.media_icons_totem or media_icons.totem
+		and params.media_icons_totem 
+		or ( result.widget_dir and result.widget_dir .. "/icons/hicolor/org.gnome.Totem.svg" )
+		or media_icons.totem
+
+	result.media_icons_rhythmbox = type(params.media_icons_rhythmbox) == "string" 
+		and params.media_icons_rhythmbox 
+		or ( result.widget_dir and result.widget_dir .. "/icons/hicolor/org.gnome.Rhythmbox3.svg" )
+		or media_icons.rhythmbox
 	
 	result.state_playing = type(params.state_playing) == "string" 
 		and params.state_playing or "󰝚 " 
@@ -89,6 +119,7 @@ end
 
 --
 -- @params {{
+-- 	widget_dir = string,
 --	metadata_script_path = string,
 -- 	ignore_player = string,
 -- 	timeout = number,
