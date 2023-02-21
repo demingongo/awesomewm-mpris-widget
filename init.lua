@@ -5,7 +5,8 @@
 -- Availability: https://github.com/demingongo/awesomewm-mpris-widget
 
 
--- TODO: support arguments to change some default properties
+-- TODO: better default path fo script and icons
+-- TODO: support more MPRIS clients
 -- TODO: Find a way to display artUrl (download it and cache it maybe?)
 
 local gears = require("gears")
@@ -19,13 +20,70 @@ local get_players_metadata_script_path = os.getenv("HOME") .. "/.local/bin/get_p
 local media_icons = {
   default = os.getenv("HOME") .. "/.icons/candy-icons/apps/scalable/juk.svg",
   firefox = os.getenv("HOME") .. "/.icons/candy-icons/apps/scalable/firefox.svg",
-  spotify = os.getenv("HOME") .. "/.icons/candy-icons/apps/scalable/spotify-client.svg"
+  spotify = os.getenv("HOME") .. "/.icons/candy-icons/apps/scalable/spotify-client.svg",
+  totem = "/usr/share/icons/hicolor/scalable/apps/org.gnome.Totem.svg" 
 }
 
 local function ellipsize(text, length)
     return (text:len() > length and length > 0)
         and text:sub(0, length - 3) .. '...'
         or text
+end
+
+
+local function initProps(props)
+	local result = {}
+	local params = {}
+	if type(props) == "table" then
+		params = props
+	end
+
+	-- Function
+	--
+
+	result.script_path =  type(params.metadata_script_path) == "string" 
+		and params.metadata_script_path or get_players_metadata_script_path
+
+	result.ignore = type(params.ignore) == "string" and params.ignore or ""
+
+	result.timeout = type(params.timeout) == "number" and params.timeout or 3
+
+	-- Style
+	--
+
+	result.font = type(params.font) == "string" and params.font or beautiful.font
+	
+	result.fg = type(params.fg) == "string" and params.fg or beautiful.fg_normal
+	
+	result.bg = type(params.bg) == "string" and params.bg or beautiful.bg_normal
+
+	result.popup_border_width = type(params.popup_border_width) == "number" 
+		and params.popup_border_width or 1
+
+	result.popup_border_color = type(params.popup_border_color) == "string" 
+		and params.popup_border_color or beautiful.bg_focus
+
+	result.media_icons_default = type(params.media_icons_default) == "string" 
+		and params.media_icons_default or media_icons.default
+	
+	result.media_icons_spotify = type(params.media_icons_spotify) == "string" 
+		and params.media_icons_spotify or media_icons.spotify
+	
+	result.media_icons_firefox = type(params.media_icons_firefox) == "string" 
+		and params.media_icons_firefox or media_icons.firefox
+	
+	result.media_icons_totem = type(params.media_icons_totem) == "string" 
+		and params.media_icons_totem or media_icons.totem
+	
+	result.state_playing = type(params.state_playing) == "string" 
+		and params.state_playing or "󰝚 " 
+	
+	result.state_paused = type(params.state_paused) == "string" 
+		and params.state_paused or "  "
+
+	result.max_chars = type(params.max_chars) == "number" and params.max_chars or 36
+
+	return result
 end
 
 --
@@ -38,18 +96,18 @@ end
 -- 	bg = string,
 -- 	popup_border_width = number,
 -- 	popup_border_color = string,
--- 	media_icons.default = string,
--- 	media_icons.spotify = string,
--- 	media_icons.firefox = string,
--- 	playing = string,
--- 	paused = string,
+-- 	media_icons_default = string,
+-- 	media_icons_spotify = string,
+-- 	media_icons_firefox = string,
+-- 	media_icons_totem = string,
+-- 	state_playing = string,
+-- 	state_paused = string,
 -- 	max_chars = number
--- }}
+-- }} params
 --
-local function init_mpris_widget(args)
+local function init_mpris_widget(params)
 
-local timeout = 3
-local max_chars = 36
+local props = initProps(params)
 
 local main_player = ""
 
@@ -59,8 +117,8 @@ local mpris_popup = awful.popup {
     shape = function(cr, width, height)
         gears.shape.rounded_rect(cr, width, height, 4)
     end,
-    border_width = 1,
-    border_color = beautiful.bg_focus,
+    border_width = props.popup_border_width, --1,
+    border_color = props.popup_border_color, --beautiful.bg_focus,
     maximum_width = 400,
     offset = { y = 5 },
     widget = {}
@@ -68,8 +126,8 @@ local mpris_popup = awful.popup {
 
 local mpris, mpris_timer = awful.widget.watch(
     -- format 'playerctl metadata' command result
-    { awful.util.shell, "-c", get_players_metadata_script_path },
-    timeout,
+    { awful.util.shell, "-c", props.script_path },--get_players_metadata_script_path },
+    props.timeout,
     function(widget, stdout)
         if stdout == '' then
             widget:set_text('')
@@ -91,10 +149,10 @@ local mpris, mpris_timer = awful.widget.watch(
 
         for k, player_metadata in ipairs(players_info) do
                 -- Declare/init vars
-                local player_icon = media_icons.default
+                local player_icon = props.media_icons_default
                 local states = {
-                    Playing = "󰝚 ",
-                    Paused = "  "
+                    Playing = props.state_playing,
+                    Paused = props.state_paused
                 }
                 local state_separator = " "
                 local mpris_now = {
@@ -139,11 +197,11 @@ local mpris, mpris_timer = awful.widget.watch(
                 if mpris_now.state ~= "N/A" then
                     -- widget's content
                     local content_w = mpris_now.artist .. " - " .. mpris_now.title
-                    
-                    if string.find(mpris_now.player_name, 'spotify') then
-                        player_icon = media_icons.spotify
+                   
+		    if props["media_icons_" .. mpris_now.player_name] then
+			player_icon = props["media_icons_" .. mpris_now.player_name]
                     elseif string.find(mpris_now.player_name, 'firefox') then
-                        player_icon = media_icons.firefox
+                        player_icon = props.media_icons_firefox
                         content_w = mpris_now.title .. " - " .. mpris_now.artist
                     end
 
@@ -156,7 +214,7 @@ local mpris, mpris_timer = awful.widget.watch(
                     end
                     if content_text == "" or main_player ~= "" and mpris_now.player_name == main_player then
 			new_main_player = mpris_now.player_name
-                        content_text = ellipsize(mpris_now.state ..state_separator .. content_w, max_chars)
+                        content_text = ellipsize(mpris_now.state ..state_separator .. content_w, props.max_chars)
                     end
 
                     -- popup content   
@@ -190,8 +248,8 @@ local mpris, mpris_timer = awful.widget.watch(
                             margins = 8,
                             widget = wibox.container.margin
                         },
-                        fg = beautiful.fg_normal,
-                        bg = beautiful.bg_normal,
+                        fg = props.fg,
+                        bg = props.bg,
                         widget = wibox.container.background
                     }
 		    popup_row:connect_signal("button::release", function(self, _, _, button)
