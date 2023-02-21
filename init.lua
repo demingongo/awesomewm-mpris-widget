@@ -4,9 +4,10 @@
 -- Link: https://github.com/demingongo
 -- Availability: https://github.com/demingongo/awesomewm-mpris-widget
 
-
+-- TODO: preferred player 
 -- TODO: better default path fo script and icons
 -- TODO: support more MPRIS clients
+-- TODO: optional text when no there's no client
 -- TODO: Find a way to display artUrl (download it and cache it maybe?)
 
 local gears = require("gears")
@@ -44,7 +45,7 @@ local function initProps(props)
 	result.script_path =  type(params.metadata_script_path) == "string" 
 		and params.metadata_script_path or get_players_metadata_script_path
 
-	result.ignore = type(params.ignore) == "string" and params.ignore or ""
+	result.ignore_player = type(params.ignore_player) == "string" and params.ignore_player or ""
 
 	result.timeout = type(params.timeout) == "number" and params.timeout or 3
 
@@ -89,7 +90,7 @@ end
 --
 -- @params {{
 --	metadata_script_path = string,
--- 	ignore = string,
+-- 	ignore_player = string,
 -- 	timeout = number,
 -- 	font = string,
 -- 	fg = string,
@@ -124,9 +125,11 @@ local mpris_popup = awful.popup {
     widget = {}
 }
 
+
+
 local mpris, mpris_timer = awful.widget.watch(
     -- format 'playerctl metadata' command result
-    { awful.util.shell, "-c", props.script_path },--get_players_metadata_script_path },
+    { awful.util.shell, "-c", props.script_path .. ( props.ignore_player and ( " -i " .. props.ignore_player) or "" ) },
     props.timeout,
     function(widget, stdout)
         if stdout == '' then
@@ -200,9 +203,10 @@ local mpris, mpris_timer = awful.widget.watch(
                    
 		    if props["media_icons_" .. mpris_now.player_name] then
 			player_icon = props["media_icons_" .. mpris_now.player_name]
-                    elseif string.find(mpris_now.player_name, 'firefox') then
-                        player_icon = props.media_icons_firefox
-                        content_w = mpris_now.title .. " - " .. mpris_now.artist
+                    	if string.find(mpris_now.player_name, 'firefox') then
+                            player_icon = props.media_icons_firefox
+                            content_w = mpris_now.title .. " - " .. mpris_now.artist
+			end
                     end
 
                     if mpris_now.artist == "N/A" and  mpris_now.title == "N/A" then
