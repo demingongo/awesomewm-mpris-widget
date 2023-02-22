@@ -5,7 +5,6 @@
 -- Availability: https://github.com/demingongo/awesomewm-mpris-widget
 
 -- TODO: support more MPRIS clients for custom icons
--- TODO: optional text when no there's no client
 -- TODO: preferred player 
 -- TODO: Find a way to display artUrl (download it and cache it maybe?)
 
@@ -16,6 +15,14 @@ local escape_f = require("awful.util").escape;
 local beautiful = require("beautiful")
 
 local get_players_metadata_script_path = os.getenv("HOME") .. "/.local/bin/list_players_metadata"
+
+local local_media_icons = {
+	default = "/icons/candy-icons/juk.svg",
+	firefox = "/icons/candy-icons/firefox.svg",
+	rhythmbox = "/icons/hicolor/org.gnome.Rhythmbox3.svg",
+	spotify = "/icons/candy-icons/spotify-client.svg",
+	totem = "/icons/hicolor/org.gnome.Totem.svg"
+}
 
 local media_icons = {
   default = os.getenv("HOME") .. "/.icons/candy-icons/apps/scalable/juk.svg",
@@ -92,27 +99,27 @@ local function initProps(props)
 
 	result.media_icons_default = type(params.media_icons_default) == "string" 
 		and params.media_icons_default 
-		or ( result.widget_dir and result.widget_dir .. "/icons/candy-icons/juk.svg" )
+		or ( result.widget_dir and result.widget_dir .. local_media_icons.default )
 		or media_icons.default
 	
 	result.media_icons_spotify = type(params.media_icons_spotify) == "string" 
 		and params.media_icons_spotify
-		or ( result.widget_dir and result.widget_dir .. "/icons/candy-icons/spotify-client.svg" )
+		or ( result.widget_dir and result.widget_dir .. local_media_icons.spotify )
 		or media_icons.spotify
 	
 	result.media_icons_firefox = type(params.media_icons_firefox) == "string" 
 		and params.media_icons_firefox 
-		or ( result.widget_dir and result.widget_dir .. "/icons/candy-icons/firefox.svg" )
+		or ( result.widget_dir and result.widget_dir .. local_media_icons.firefox )
 		or media_icons.firefox
 	
 	result.media_icons_totem = type(params.media_icons_totem) == "string" 
 		and params.media_icons_totem 
-		or ( result.widget_dir and result.widget_dir .. "/icons/hicolor/org.gnome.Totem.svg" )
+		or ( result.widget_dir and result.widget_dir .. local_media_icons.totem )
 		or media_icons.totem
 
 	result.media_icons_rhythmbox = type(params.media_icons_rhythmbox) == "string" 
 		and params.media_icons_rhythmbox 
-		or ( result.widget_dir and result.widget_dir .. "/icons/hicolor/org.gnome.Rhythmbox3.svg" )
+		or ( result.widget_dir and result.widget_dir .. local_media_icons.rhythmbox )
 		or media_icons.rhythmbox
 	
 	result.state_playing = type(params.state_playing) == "string" 
