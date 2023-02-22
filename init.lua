@@ -194,15 +194,14 @@ local mpris_popup = awful.popup {
 }
 
 local function internal_refresh(widget, stdout)
-	if refreshing then
-		return
-	end
+	refreshing = true
 
         if stdout == '' then
             widget:set_text(props.empty_text)
             if mpris_popup.visible then
                 mpris_popup.visible = not mpris_popup.visible
             end
+	    refreshing = false
             return
         end
 
@@ -340,6 +339,7 @@ local function internal_refresh(widget, stdout)
 	if #mpris_popup_rows == 0 and mpris_popup.visible then
 	    mpris_popup.visible = not mpris_popup.visible
 	end
+	refreshing = false
 end
 
 local mpris, mpris_timer = awful.widget.watch(
