@@ -67,7 +67,7 @@ local function initProps(props)
 		or ( result.widget_dir and result.widget_dir .. "/bin/list_players_metadata" )
 		or get_players_metadata_script_path
 
-	result.ignore_player = type(params.ignore_player) == "string" and params.ignore_player or ""
+	result.ignore_player = type(params.ignore_player) == "string" and params.ignore_player or nil
 
 	result.timeout = type(params.timeout) == "number" and params.timeout or 3
 
