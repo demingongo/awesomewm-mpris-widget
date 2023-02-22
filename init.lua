@@ -4,7 +4,6 @@
 -- Link: https://github.com/demingongo
 -- Availability: https://github.com/demingongo/awesomewm-mpris-widget
 
--- TODO: refresh widget after actions (play-pause, ...)
 -- TODO: preferred player 
 -- TODO: Find a way to display artUrl (download it and cache it maybe?)
 
@@ -13,6 +12,7 @@ local wibox = require("wibox")
 local awful = require("awful")
 local escape_f = require("awful.util").escape;
 local beautiful = require("beautiful")
+-- local naughty = require("naughty")
 
 local get_players_metadata_script_path = os.getenv("HOME") .. "/.local/bin/list_players_metadata"
 
@@ -177,6 +177,12 @@ local main_player = ""
 
 local refreshing = false
 
+local function get_list_metadata_cmd()
+	return props.script_path .. ( props.ignore_player and ( " -i " .. props.ignore_player) or "" )
+end
+
+local mpris = wibox.widget.textbox();
+
 local mpris_popup = awful.popup {
     ontop = true,
     visible = false, -- should be hidden when created
@@ -194,16 +200,19 @@ local mpris_popup = awful.popup {
 }
 
 local function internal_refresh(widget, stdout)
-	refreshing = true
+	if refreshing then
+		return
+	end
 
         if stdout == '' then
             widget:set_text(props.empty_text)
             if mpris_popup.visible then
                 mpris_popup.visible = not mpris_popup.visible
             end
-	    refreshing = false
             return
         end
+
+	refreshing = true
 
 	local new_main_player = ""
         local content_text = ""
@@ -322,7 +331,10 @@ local function internal_refresh(widget, stdout)
                     }
 		    popup_row:connect_signal("button::release", function(self, _, _, button)
 			if button == 1 then
-			    main_player = mpris_now.player_name
+			    if main_player ~= mpris_now.player_name then
+			    	main_player = mpris_now.player_name
+			    	internal_refresh(widget, stdout)
+			    end
 			end
 		    end)
 		    -- add row
@@ -333,20 +345,27 @@ local function internal_refresh(widget, stdout)
 		    end
         	end
         end
+	refreshing = false
 	main_player = new_main_player
         widget:set_text(content_text ~= "" and content_text or props.empty_text)
         mpris_popup:setup(mpris_popup_rows)
 	if #mpris_popup_rows == 0 and mpris_popup.visible then
 	    mpris_popup.visible = not mpris_popup.visible
 	end
-	refreshing = false
 end
 
-local mpris, mpris_timer = awful.widget.watch(
+local function refresh()
+    awful.spawn.easy_async_with_shell(get_list_metadata_cmd(), function(stdout)
+	internal_refresh(mpris, stdout)
+    end)
+end
+
+local _, mpris_timer = awful.widget.watch(
     -- format 'playerctl metadata' command result
-    { awful.util.shell, "-c", props.script_path .. ( props.ignore_player and ( " -i " .. props.ignore_player) or "" ) },
+    { awful.util.shell, "-c", get_list_metadata_cmd() },
     props.timeout,
-    internal_refresh
+    internal_refresh,
+    mpris
 )
 
 mpris:connect_signal("button::release", function(self, _, _, button, _, find_widgets_result)
@@ -356,7 +375,7 @@ mpris:connect_signal("button::release", function(self, _, _, button, _, find_wid
 	if main_player ~= "" then
 	    cmd = cmd .. " --player=" .. main_player
 	end
-        awful.spawn(cmd, false)
+        awful.spawn.easy_async_with_shell(cmd, refresh)
     elseif button == 3 then
         -- display details
         if mpris_popup.visible then
