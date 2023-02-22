@@ -175,6 +175,8 @@ local props = initProps(params)
 
 local main_player = ""
 
+local refreshing = false
+
 local mpris_popup = awful.popup {
     ontop = true,
     visible = false, -- should be hidden when created
@@ -191,12 +193,11 @@ local mpris_popup = awful.popup {
     bgimage = props.bgimage
 }
 
+local function internal_refresh(widget, stdout)
+	if refreshing then
+		return
+	end
 
-local mpris, mpris_timer = awful.widget.watch(
-    -- format 'playerctl metadata' command result
-    { awful.util.shell, "-c", props.script_path .. ( props.ignore_player and ( " -i " .. props.ignore_player) or "" ) },
-    props.timeout,
-    function(widget, stdout)
         if stdout == '' then
             widget:set_text(props.empty_text)
             if mpris_popup.visible then
@@ -213,7 +214,6 @@ local mpris, mpris_timer = awful.widget.watch(
         do
             table.insert(players_info, v:match "^%s*(.-)%s*$")
         end
-
 
         for k, player_metadata in ipairs(players_info) do
                 -- Declare/init vars
@@ -334,16 +334,20 @@ local mpris, mpris_timer = awful.widget.watch(
 		    end
         	end
         end
-
 	main_player = new_main_player
         widget:set_text(content_text ~= "" and content_text or props.empty_text)
         mpris_popup:setup(mpris_popup_rows)
 	if #mpris_popup_rows == 0 and mpris_popup.visible then
 	    mpris_popup.visible = not mpris_popup.visible
 	end
-    end
-)
+end
 
+local mpris, mpris_timer = awful.widget.watch(
+    -- format 'playerctl metadata' command result
+    { awful.util.shell, "-c", props.script_path .. ( props.ignore_player and ( " -i " .. props.ignore_player) or "" ) },
+    props.timeout,
+    internal_refresh
+)
 
 mpris:connect_signal("button::release", function(self, _, _, button, _, find_widgets_result)
     if button == 1 and main_player then
