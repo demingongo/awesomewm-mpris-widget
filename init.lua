@@ -4,7 +4,6 @@
 -- Link: https://github.com/demingongo
 -- Availability: https://github.com/demingongo/awesomewm-mpris-widget
 
--- container scroll ? to see the text in textbox (https://awesomewm.org/doc/api/classes/wibox.container.scroll.html)
 -- TODO: preferred player 
 -- TODO: Find a way to display artUrl (download it and cache it maybe?)
 
@@ -71,6 +70,24 @@ local function initProps(props)
 	result.ignore_player = type(params.ignore_player) == "string" and params.ignore_player or nil
 
 	result.timeout = type(params.timeout) == "number" and params.timeout or 3
+
+	if type(params.scroll) == "table" then
+		result.scroll_enabled = type(params.scroll.enabled) == "boolean" 
+			and params.scroll.enabled or false
+
+		result.scroll_max_size = type(params.scroll.max_size) == "number" 
+			and params.scroll.max_size or 170	
+		
+		result.scroll_step_function = type(params.scroll.step_function) == "function" 
+			and params.scroll.step_function 
+			or wibox.container.scroll.step_functions.waiting_nonlinear_back_and_forth
+		
+		result.scroll_speed = type(params.scroll.speed) == "number" 
+			and params.scroll.speed or 20
+		
+		result.scroll_fps = type(params.scroll.fps) == "number" 
+			and params.scroll.fps or 50
+	end
 
 	-- Style
 	--
@@ -167,7 +184,14 @@ end
 -- 	},
 -- 	state_playing = string,
 -- 	state_paused = string,
--- 	max_chars = number
+-- 	max_chars = number,
+-- 	scroll = {
+-- 		enabled = boolean,
+-- 		max_size = number, 170
+-- 		step_function = wibox.container.scroll.step_functions,
+-- 		speed = number, 20
+-- 		fps = number 50
+-- 	}
 -- }} params
 --
 local function init_mpris_widget(params)
@@ -183,6 +207,24 @@ local function get_list_metadata_cmd()
 end
 
 local mpris_textbox = wibox.widget.textbox();
+
+local mpris_textbox_container;
+
+if props.scroll_enabled then
+    mpris_textbox_container = wibox.widget {
+	layout = wibox.container.scroll.horizontal,
+	max_size = props.scroll_max_size,
+	step_function = props.scroll_step_function, 
+	speed = props.scroll_speed,
+	mpris_textbox
+    }
+    mpris_textbox_container:set_fps(props.scroll_fps)
+else
+    mpris_textbox_container = wibox.widget {
+	layout = wibox.container.background,
+	mpris_textbox
+    }
+end
 
 local mpris_popup = awful.popup {
     ontop = true,
@@ -295,6 +337,9 @@ local function internal_refresh(_, stdout)
                     if content_text == "" or main_player ~= "" and mpris_now.player_name == main_player then
 			new_main_player = mpris_now.player_name
                         content_text = ellipsize(mpris_now.state ..state_separator .. content_w, props.max_chars)
+			if props.scroll_enabled then
+			    content_text = content_text .. " "
+			end
                     end
 
                     -- popup content   
@@ -371,7 +416,7 @@ local _, mpris_timer = awful.widget.watch(
     mpris_textbox
 )
 
-mpris_textbox:connect_signal("button::release", function(self, _, _, button, _, find_widgets_result)
+mpris_textbox_container:connect_signal("button::release", function(self, _, _, button, _, find_widgets_result)
     if button == 1 and main_player then
         -- play/pause
 	local cmd = "playerctl play-pause"
@@ -393,7 +438,7 @@ mpris_textbox:connect_signal("button::release", function(self, _, _, button, _, 
     end
 end)
 
-return mpris_textbox
+return mpris_textbox_container
 
 end
 
