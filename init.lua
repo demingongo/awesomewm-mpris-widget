@@ -4,6 +4,7 @@
 -- Link: https://github.com/demingongo
 -- Availability: https://github.com/demingongo/awesomewm-mpris-widget
 
+-- container scroll ? to see the text in textbox (https://awesomewm.org/doc/api/classes/wibox.container.scroll.html)
 -- TODO: preferred player 
 -- TODO: Find a way to display artUrl (download it and cache it maybe?)
 
@@ -181,7 +182,7 @@ local function get_list_metadata_cmd()
 	return props.script_path .. ( props.ignore_player and ( " -i " .. props.ignore_player) or "" )
 end
 
-local mpris = wibox.widget.textbox();
+local mpris_textbox = wibox.widget.textbox();
 
 local mpris_popup = awful.popup {
     ontop = true,
@@ -199,7 +200,9 @@ local mpris_popup = awful.popup {
     bgimage = props.bgimage
 }
 
-local function internal_refresh(widget, stdout)
+local function internal_refresh(_, stdout)
+	local widget = mpris_textbox
+
 	if refreshing then
 		return
 	end
@@ -356,7 +359,7 @@ end
 
 local function refresh()
     awful.spawn.easy_async_with_shell(get_list_metadata_cmd(), function(stdout)
-	internal_refresh(mpris, stdout)
+	internal_refresh(mpris_textbox, stdout)
     end)
 end
 
@@ -365,10 +368,10 @@ local _, mpris_timer = awful.widget.watch(
     { awful.util.shell, "-c", get_list_metadata_cmd() },
     props.timeout,
     internal_refresh,
-    mpris
+    mpris_textbox
 )
 
-mpris:connect_signal("button::release", function(self, _, _, button, _, find_widgets_result)
+mpris_textbox:connect_signal("button::release", function(self, _, _, button, _, find_widgets_result)
     if button == 1 and main_player then
         -- play/pause
 	local cmd = "playerctl play-pause"
@@ -390,7 +393,7 @@ mpris:connect_signal("button::release", function(self, _, _, button, _, find_wid
     end
 end)
 
-return mpris
+return mpris_textbox
 
 end
 
