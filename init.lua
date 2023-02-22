@@ -4,7 +4,7 @@
 -- Link: https://github.com/demingongo
 -- Availability: https://github.com/demingongo/awesomewm-mpris-widget
 
--- TODO: support more MPRIS clients for custom icons
+-- TODO: refresh widget after actions (play-pause, ...)
 -- TODO: preferred player 
 -- TODO: Find a way to display artUrl (download it and cache it maybe?)
 
@@ -97,6 +97,14 @@ local function initProps(props)
 	result.popup_maximum_width = type(params.popup_maximum_width) == "number" 
 		and params.popup_maximum_width or 400
 
+	result.state_playing = type(params.state_playing) == "string" 
+		and params.state_playing or "󰝚 " 
+	
+	result.state_paused = type(params.state_paused) == "string" 
+		and params.state_paused or "  "
+
+	result.max_chars = type(params.max_chars) == "number" and params.max_chars or 36
+
 	result.media_icons_default = type(params.media_icons_default) == "string" 
 		and params.media_icons_default 
 		or ( result.widget_dir and result.widget_dir .. local_media_icons.default )
@@ -121,15 +129,17 @@ local function initProps(props)
 		and params.media_icons_rhythmbox 
 		or ( result.widget_dir and result.widget_dir .. local_media_icons.rhythmbox )
 		or media_icons.rhythmbox
-	
-	result.state_playing = type(params.state_playing) == "string" 
-		and params.state_playing or "󰝚 " 
-	
-	result.state_paused = type(params.state_paused) == "string" 
-		and params.state_paused or "  "
 
-	result.max_chars = type(params.max_chars) == "number" and params.max_chars or 36
-
+	if type(params.media_icons) == "table" then
+		-- loop through properties
+		for player_name, icon_path in pairs(params.media_icons) 
+		do
+		    if type(icon_path) == "string" then
+			    result["media_icons_" .. player_name] = icon_path
+		    end
+		end
+	end
+	
 	return result
 end
 
@@ -151,6 +161,9 @@ end
 -- 	media_icons_spotify = string,
 -- 	media_icons_firefox = string,
 -- 	media_icons_totem = string,
+-- 	media_icons = {
+-- 		client_name = icon_path
+-- 	},
 -- 	state_playing = string,
 -- 	state_paused = string,
 -- 	max_chars = number
