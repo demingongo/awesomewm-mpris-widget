@@ -47,6 +47,10 @@ local function initProps(props)
 		and params.widget_dir
 		or nil
 
+	result.empty_text = type(params.empty_text) == "string"
+		and params.empty_text
+		or ""
+
 	-- Function
 	--
 
@@ -74,12 +78,17 @@ local function initProps(props)
 	result.bg = type(params.bg) == "string"  
 		and params.bg
 		or beautiful.bg_normal
+	
+	result.bgimage = params.bgimage or nil
 
 	result.popup_border_width = type(params.popup_border_width) == "number" 
 		and params.popup_border_width or 1
 
 	result.popup_border_color = type(params.popup_border_color) == "string" 
 		and params.popup_border_color or beautiful.bg_focus
+
+	result.popup_maximum_width = type(params.popup_maximum_width) == "number" 
+		and params.popup_maximum_width or 400
 
 	result.media_icons_default = type(params.media_icons_default) == "string" 
 		and params.media_icons_default 
@@ -120,14 +129,17 @@ end
 --
 -- @params {{
 -- 	widget_dir = string,
+-- 	empty_text = string,
 --	metadata_script_path = string,
 -- 	ignore_player = string,
 -- 	timeout = number,
 -- 	font = string,
 -- 	fg = string,
 -- 	bg = string,
+-- 	bgimage = gears.surface,
 -- 	popup_border_width = number,
 -- 	popup_border_color = string,
+-- 	popup_maximum_width = number,
 -- 	media_icons_default = string,
 -- 	media_icons_spotify = string,
 -- 	media_icons_firefox = string,
@@ -149,13 +161,15 @@ local mpris_popup = awful.popup {
     shape = function(cr, width, height)
         gears.shape.rounded_rect(cr, width, height, 4)
     end,
-    border_width = props.popup_border_width, --1,
-    border_color = props.popup_border_color, --beautiful.bg_focus,
-    maximum_width = 400,
+    border_width = props.popup_border_width,
+    border_color = props.popup_border_color,
+    maximum_width = props.popup_maximum_width,
     offset = { y = 5 },
-    widget = {}
+    widget = {},
+    fg = props.fg,
+    bg = props.bg,
+    bgimage = props.bgimage
 }
-
 
 
 local mpris, mpris_timer = awful.widget.watch(
@@ -164,7 +178,7 @@ local mpris, mpris_timer = awful.widget.watch(
     props.timeout,
     function(widget, stdout)
         if stdout == '' then
-            widget:set_text('')
+            widget:set_text(props.empty_text)
             if mpris_popup.visible then
                 mpris_popup.visible = not mpris_popup.visible
             end
@@ -283,8 +297,8 @@ local mpris, mpris_timer = awful.widget.watch(
                             margins = 8,
                             widget = wibox.container.margin
                         },
-                        fg = props.fg,
-                        bg = props.bg,
+                        -- fg = props.fg,
+                        -- bg = props.bg,
                         widget = wibox.container.background
                     }
 		    popup_row:connect_signal("button::release", function(self, _, _, button)
@@ -302,7 +316,7 @@ local mpris, mpris_timer = awful.widget.watch(
         end
 
 	main_player = new_main_player
-        widget:set_text(content_text)
+        widget:set_text(content_text ~= "" and content_text or props.empty_text)
         mpris_popup:setup(mpris_popup_rows)
 	if #mpris_popup_rows == 0 and mpris_popup.visible then
 	    mpris_popup.visible = not mpris_popup.visible
@@ -312,7 +326,7 @@ local mpris, mpris_timer = awful.widget.watch(
 
 
 mpris:connect_signal("button::release", function(self, _, _, button, _, find_widgets_result)
-    if button == 1 then
+    if button == 1 and main_player then
         -- play/pause
 	local cmd = "playerctl play-pause"
 	if main_player ~= "" then
@@ -324,7 +338,7 @@ mpris:connect_signal("button::release", function(self, _, _, button, _, find_wid
         if mpris_popup.visible then
             -- hide details
             mpris_popup.visible = not mpris_popup.visible
-        else
+        elseif main_player ~= "" then
             -- display details next to { x=, y=, width=, height= }
             mpris_popup:move_next_to(
                 find_widgets_result
