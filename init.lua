@@ -86,7 +86,7 @@ local function initProps(props)
 			and params.scroll.speed or 20
 		
 		result.scroll_fps = type(params.scroll.fps) == "number" 
-			and params.scroll.fps or 50
+			and params.scroll.fps or 10
 	end
 
 	-- Style
@@ -190,7 +190,7 @@ end
 -- 		max_size = number, 170
 -- 		step_function = wibox.container.scroll.step_functions,
 -- 		speed = number, 20
--- 		fps = number 50
+-- 		fps = number 10
 -- 	}
 -- }} params
 --
