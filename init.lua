@@ -12,7 +12,7 @@ local wibox = require("wibox")
 local awful = require("awful")
 local escape_f = require("awful.util").escape;
 local beautiful = require("beautiful")
--- local naughty = require("naughty")
+local naughty = require("naughty")
 
 local get_players_metadata_script_path = os.getenv("HOME") .. "/.local/bin/list_players_metadata"
 
@@ -75,6 +75,9 @@ local function initProps(props)
 		result.scroll_enabled = type(params.scroll.enabled) == "boolean" 
 			and params.scroll.enabled or false
 
+		result.scroll_position = (params.scroll.position == "vertical") 
+			and params.scroll.position or "horizontal"
+
 		result.scroll_max_size = type(params.scroll.max_size) == "number" 
 			and params.scroll.max_size or 170	
 		
@@ -83,13 +86,17 @@ local function initProps(props)
 			or wibox.container.scroll.step_functions.waiting_nonlinear_back_and_forth
 		
 		result.scroll_speed = type(params.scroll.speed) == "number" 
-			and params.scroll.speed or 20
+			and params.scroll.speed or 
+			(result.scroll_position == "vertical" and 8 or 20)
 		
 		result.scroll_fps = type(params.scroll.fps) == "number" 
 			and params.scroll.fps or 10
 
-		result.scroll_position = type(params.scroll.position) == "string" 
-			and params.scroll.position or "horizontal"
+		result.scroll_margin_top = type(params.scroll.margin_top) == "number" 
+			and params.scroll.margin_top or 4
+
+		result.scroll_margin_bottom = type(params.scroll.margin_bottom) == "number" 
+			and params.scroll.margin_bottom or 4
 	end
 
 	-- Style
@@ -124,7 +131,7 @@ local function initProps(props)
 	result.state_paused = type(params.state_paused) == "string" 
 		and params.state_paused or "  "
 
-	result.max_chars = type(params.max_chars) == "number" and params.max_chars or 36
+	result.max_chars = type(params.max_chars) == "number" and params.max_chars or 34
 
 	result.media_icons_default = type(params.media_icons_default) == "string" 
 		and params.media_icons_default 
@@ -190,9 +197,10 @@ end
 -- 	max_chars = number,
 -- 	scroll = {
 -- 		enabled = boolean,
+-- 		position = "vertical" or "horizontal",
 -- 		max_size = number, 170
 -- 		step_function = wibox.container.scroll.step_functions,
--- 		speed = number, 20
+-- 		speed = number, vertical: 8, horizontal: 20
 -- 		fps = number 10
 -- 	}
 -- }} params
@@ -210,36 +218,60 @@ local function get_list_metadata_cmd()
 end
 
 local mpris_textbox = wibox.widget.textbox();
+local mpris_textbox_middle = nil;
+local mpris_textbox_bottom = nil;
 
 local mpris_textbox_container;
 
 if props.scroll_enabled then
+    local scroll_widget; 
     if props.scroll_position == "vertical" then
-	mpris_textbox_container = wibox.widget {
+	mpris_textbox_middle = wibox.widget {
+		text = " ",
+		widget = wibox.widget.textbox
+	}
+	mpris_textbox_bottom = wibox.widget.textbox()
+	
+	scroll_widget = wibox.widget {
 		layout = wibox.container.scroll.vertical,
-		max_size = 20,--props.scroll_max_size,
 		step_function = props.scroll_step_function, 
 		speed = props.scroll_speed,
 		{
 		    {
-		    	text = "MPRIS WIDGET",
-		    	widget = wibox.widget.textbox
-		    },
-		    mpris_textbox,
-		    spacing = 10,
-	    	    layout = wibox.layout.fixed.vertical
+			{
+			    mpris_textbox,
+			    widget = wibox.container.place
+			},
+			mpris_textbox_middle,
+			{
+			    mpris_textbox_bottom,
+			    widget = wibox.container.place
+			},
+	    	    	layout = wibox.layout.fixed.vertical
+	    	    },
+		    top = props.scroll_margin_top,
+		    bottom = props.scroll_margin_bottom,
+		    widget = wibox.container.margin
 		}
+	}
+
+	mpris_textbox_container = wibox.widget {
+	    scroll_widget,
+	    width = props.scroll_max_size,
+	    widget = wibox.container.constraint
     	}
     else
-        mpris_textbox_container = wibox.widget {
+        scroll_widget = wibox.widget {
 		layout = wibox.container.scroll.horizontal,
 		max_size = props.scroll_max_size,
 		step_function = props.scroll_step_function, 
 		speed = props.scroll_speed,
 		mpris_textbox,
 	}
+	
+	mpris_textbox_container = scroll_widget
     end
-    mpris_textbox_container:set_fps(props.scroll_fps)
+    scroll_widget:set_fps(props.scroll_fps)
 else
     mpris_textbox_container = wibox.widget {
 	layout = wibox.container.background,
@@ -263,8 +295,34 @@ local mpris_popup = awful.popup {
     bgimage = props.bgimage
 }
 
+local scroll_handler = {
+	hide_bottom = function ()
+	    if mpris_textbox_middle and mpris_textbox_middle.visible then
+		mpris_textbox_middle.visible = not mpris_textbox_middle.visible
+	    end
+	    if mpris_textbox_bottom then
+		mpris_textbox_bottom:set_text("")
+		if mpris_textbox_bottom.visible then
+		    mpris_textbox_bottom.visible = not mpris_textbox_bottom.visible
+	        end
+	    end 
+	end,
+	show_bottom = function (txt)
+	    if mpris_textbox_middle and not mpris_textbox_middle.visible then
+		mpris_textbox_middle.visible = not mpris_textbox_middle.visible
+	    end
+	    if mpris_textbox_bottom then
+		mpris_textbox_bottom:set_text(txt)
+		if not mpris_textbox_bottom.visible then
+		    mpris_textbox_bottom.visible = not mpris_textbox_bottom.visible
+	        end
+	    end 
+	end
+}
+
 local function internal_refresh(_, stdout)
 	local widget = mpris_textbox
+	local widget_bottom = mpris_textbox_bottom
 
 	if refreshing then
 		return
@@ -272,6 +330,9 @@ local function internal_refresh(_, stdout)
 
         if stdout == '' then
             widget:set_text(props.empty_text)
+	    if widget_bottom then
+		widget_bottom:set_text(props.empty_text)
+	    end
             if mpris_popup.visible then
                 mpris_popup.visible = not mpris_popup.visible
             end
@@ -282,6 +343,7 @@ local function internal_refresh(_, stdout)
 
 	local new_main_player = ""
         local content_text = ""
+	local content_text_bottom = ""
         local mpris_popup_rows = { layout = wibox.layout.fixed.vertical }
         local players_info = {}
         for v in string.gmatch(stdout, "([^\r\n]+)") 
@@ -338,8 +400,22 @@ local function internal_refresh(_, stdout)
                 -- Display
                 if mpris_now.state ~= "N/A" then
                     -- widget's content
-                    local content_w = mpris_now.artist .. " - " .. mpris_now.title
-                   
+                    local content_w = mpris_now.player_name
+		    local content_top = mpris_now.player_name
+		    local content_bottom = ""
+
+                    if mpris_now.artist ~= "N/A" and  mpris_now.title ~= "N/A" then
+			content_w = mpris_now.artist .. " - " .. mpris_now.title
+			content_top = mpris_now.title
+			content_bottom = mpris_now.artist
+                    elseif mpris_now.title ~= "N/A" then
+                        content_w = mpris_now.title
+			content_top = mpris_now.title
+                    elseif mpris_now.artist ~= "N/A" then
+                        content_w = mpris_now.artist
+			content_bottom = mpris_now.artist
+                    end
+
 		    if props["media_icons_" .. mpris_now.player_name] then
 			player_icon = props["media_icons_" .. mpris_now.player_name]
                     	if string.find(mpris_now.player_name, 'firefox') then
@@ -348,17 +424,18 @@ local function internal_refresh(_, stdout)
 			end
                     end
 
-                    if mpris_now.artist == "N/A" and  mpris_now.title == "N/A" then
-                        content_w = mpris_now.player_name
-                    elseif mpris_now.artist == "N/A" then
-                        content_w = mpris_now.title
-                    elseif mpris_now.title == "N/A" then
-                        content_w = mpris_now.artist
-                    end
+		    -- the first one in the list or/and the selected one
                     if content_text == "" or main_player ~= "" and mpris_now.player_name == main_player then
 			new_main_player = mpris_now.player_name
-                        content_text = ellipsize(mpris_now.state ..state_separator .. content_w, props.max_chars)
-			if props.scroll_enabled then
+
+			if widget_bottom then
+			    content_text = ellipsize(mpris_now.state ..state_separator .. content_top, props.max_chars)
+			    content_text_bottom = ellipsize(content_bottom, props.max_chars)
+			else
+			    content_text = ellipsize(mpris_now.state ..state_separator .. content_w, props.max_chars)
+		    	end
+
+			if props.scroll_enabled and not widget_bottom then
 			    content_text = content_text .. " "
 			end
                     end
@@ -394,8 +471,6 @@ local function internal_refresh(_, stdout)
                             margins = 8,
                             widget = wibox.container.margin
                         },
-                        -- fg = props.fg,
-                        -- bg = props.bg,
                         widget = wibox.container.background
                     }
 		    popup_row:connect_signal("button::release", function(self, _, _, button)
@@ -414,9 +489,18 @@ local function internal_refresh(_, stdout)
 		    end
         	end
         end
+	
 	refreshing = false
+	
 	main_player = new_main_player
-        widget:set_text(content_text ~= "" and content_text or props.empty_text)
+        
+	widget:set_text(content_text ~= "" and content_text or props.empty_text)
+	if content_text_bottom ~= "" then
+	    scroll_handler.show_bottom(content_text_bottom)
+	else
+	    scroll_handler.hide_bottom()
+	end
+
         mpris_popup:setup(mpris_popup_rows)
 	if #mpris_popup_rows == 0 and mpris_popup.visible then
 	    mpris_popup.visible = not mpris_popup.visible
