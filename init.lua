@@ -87,6 +87,9 @@ local function initProps(props)
 		
 		result.scroll_fps = type(params.scroll.fps) == "number" 
 			and params.scroll.fps or 10
+
+		result.scroll_position = type(params.scroll.position) == "string" 
+			and params.scroll.position or "horizontal"
 	end
 
 	-- Style
@@ -211,13 +214,31 @@ local mpris_textbox = wibox.widget.textbox();
 local mpris_textbox_container;
 
 if props.scroll_enabled then
-    mpris_textbox_container = wibox.widget {
-	layout = wibox.container.scroll.horizontal,
-	max_size = props.scroll_max_size,
-	step_function = props.scroll_step_function, 
-	speed = props.scroll_speed,
-	mpris_textbox
-    }
+    if props.scroll_position == "vertical" then
+	mpris_textbox_container = wibox.widget {
+		layout = wibox.container.scroll.vertical,
+		max_size = 20,--props.scroll_max_size,
+		step_function = props.scroll_step_function, 
+		speed = props.scroll_speed,
+		{
+		    {
+		    	text = "MPRIS WIDGET",
+		    	widget = wibox.widget.textbox
+		    },
+		    mpris_textbox,
+		    spacing = 10,
+	    	    layout = wibox.layout.fixed.vertical
+		}
+    	}
+    else
+        mpris_textbox_container = wibox.widget {
+		layout = wibox.container.scroll.horizontal,
+		max_size = props.scroll_max_size,
+		step_function = props.scroll_step_function, 
+		speed = props.scroll_speed,
+		mpris_textbox,
+	}
+    end
     mpris_textbox_container:set_fps(props.scroll_fps)
 else
     mpris_textbox_container = wibox.widget {
