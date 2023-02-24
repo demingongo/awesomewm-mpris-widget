@@ -93,10 +93,10 @@ local function initProps(props)
 			and params.scroll.fps or 10
 
 		result.scroll_margin_top = type(params.scroll.margin_top) == "number" 
-			and params.scroll.margin_top or 4
+			and params.scroll.margin_top or 5
 
 		result.scroll_margin_bottom = type(params.scroll.margin_bottom) == "number" 
-			and params.scroll.margin_bottom or 4
+			and params.scroll.margin_bottom or 5
 	end
 
 	-- Style
