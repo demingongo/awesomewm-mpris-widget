@@ -4,7 +4,7 @@
 -- Link: https://github.com/demingongo
 -- Availability: https://github.com/demingongo/awesomewm-mpris-widget
 
--- TODO: preferred player 
+-- TODO: preferred player
 -- TODO: Find a way to display artUrl (download it and cache it maybe?)
 
 local gears = require("gears")
@@ -12,7 +12,7 @@ local wibox = require("wibox")
 local awful = require("awful")
 local escape_f = require("awful.util").escape;
 local beautiful = require("beautiful")
-local naughty = require("naughty")
+--local naughty = require("naughty")
 
 local get_players_metadata_script_path = os.getenv("HOME") .. "/.local/bin/list_players_metadata"
 
@@ -25,19 +25,18 @@ local local_media_icons = {
 }
 
 local media_icons = {
-  default = os.getenv("HOME") .. "/.icons/candy-icons/apps/scalable/juk.svg",
-  firefox = os.getenv("HOME") .. "/.icons/candy-icons/apps/scalable/firefox.svg",
-  spotify = os.getenv("HOME") .. "/.icons/candy-icons/apps/scalable/spotify-client.svg",
-  totem = "/usr/share/icons/hicolor/scalable/apps/org.gnome.Totem.svg",
-  rhythmbox = "/usr/share/icons/hicolor/scalable/apps/org.gnome.Rhythmbox3.svg"
+	default = os.getenv("HOME") .. "/.icons/candy-icons/apps/scalable/juk.svg",
+	firefox = os.getenv("HOME") .. "/.icons/candy-icons/apps/scalable/firefox.svg",
+	spotify = os.getenv("HOME") .. "/.icons/candy-icons/apps/scalable/spotify-client.svg",
+	totem = "/usr/share/icons/hicolor/scalable/apps/org.gnome.Totem.svg",
+	rhythmbox = "/usr/share/icons/hicolor/scalable/apps/org.gnome.Rhythmbox3.svg"
 }
 
 local function ellipsize(text, length)
-    return (text:len() > length and length > 0)
-        and text:sub(0, length - 3) .. '...'
-        or text
+	return (text:len() > length and length > 0)
+		and text:sub(0, length - 3) .. '...'
+		or text
 end
-
 
 local function initProps(props)
 	local result = {}
@@ -49,8 +48,8 @@ local function initProps(props)
 	-- Primary
 	--
 
-	result.widget_dir = type(params.widget_dir) == "string" 
-		and params.widget_dir ~= "" 
+	result.widget_dir = type(params.widget_dir) == "string"
+		and params.widget_dir ~= ""
 		and params.widget_dir
 		or nil
 
@@ -61,10 +60,10 @@ local function initProps(props)
 	-- Function
 	--
 
-	result.script_path =  type(params.metadata_script_path) == "string" 
-		and params.metadata_script_path ~= "" 
+	result.script_path = type(params.metadata_script_path) == "string"
+		and params.metadata_script_path ~= ""
 		and params.metadata_script_path
-		or ( result.widget_dir and result.widget_dir .. "/bin/list_players_metadata" )
+		or (result.widget_dir and result.widget_dir .. "/bin/list_players_metadata")
 		or get_players_metadata_script_path
 
 	result.ignore_player = type(params.ignore_player) == "string" and params.ignore_player or nil
@@ -72,102 +71,102 @@ local function initProps(props)
 	result.timeout = type(params.timeout) == "number" and params.timeout or 3
 
 	if type(params.scroll) == "table" then
-		result.scroll_enabled = type(params.scroll.enabled) == "boolean" 
+		result.scroll_enabled = type(params.scroll.enabled) == "boolean"
 			and params.scroll.enabled or false
 
-		result.scroll_position = (params.scroll.position == "vertical") 
+		result.scroll_position = (params.scroll.position == "vertical")
 			and params.scroll.position or "horizontal"
 
-		result.scroll_max_size = type(params.scroll.max_size) == "number" 
-			and params.scroll.max_size or 170	
-		
-		result.scroll_step_function = type(params.scroll.step_function) == "function" 
-			and params.scroll.step_function 
+		result.scroll_max_size = type(params.scroll.max_size) == "number"
+			and params.scroll.max_size or 170
+
+		result.scroll_step_function = type(params.scroll.step_function) == "function"
+			and params.scroll.step_function
 			or wibox.container.scroll.step_functions.waiting_nonlinear_back_and_forth
-		
-		result.scroll_speed = type(params.scroll.speed) == "number" 
-			and params.scroll.speed or 
+
+		result.scroll_speed = type(params.scroll.speed) == "number"
+			and params.scroll.speed or
 			(result.scroll_position == "vertical" and 8 or 20)
-		
-		result.scroll_fps = type(params.scroll.fps) == "number" 
+
+		result.scroll_fps = type(params.scroll.fps) == "number"
 			and params.scroll.fps or 10
 
-		result.scroll_margin_top = type(params.scroll.margin_top) == "number" 
+		result.scroll_margin_top = type(params.scroll.margin_top) == "number"
 			and params.scroll.margin_top or 5
 
-		result.scroll_margin_bottom = type(params.scroll.margin_bottom) == "number" 
+		result.scroll_margin_bottom = type(params.scroll.margin_bottom) == "number"
 			and params.scroll.margin_bottom or 5
 	end
 
 	-- Style
 	--
 
-	result.font = type(params.font) == "string" 
+	result.font = type(params.font) == "string"
 		and params.font
 		or beautiful.font
-	
-	result.fg = type(params.fg) == "string" 
+
+	result.fg = type(params.fg) == "string"
 		and params.fg
 		or beautiful.fg_normal
-	
-	result.bg = type(params.bg) == "string"  
+
+	result.bg = type(params.bg) == "string"
 		and params.bg
 		or beautiful.bg_normal
-	
+
 	result.bgimage = params.bgimage or nil
 
-	result.popup_border_width = type(params.popup_border_width) == "number" 
+	result.popup_border_width = type(params.popup_border_width) == "number"
 		and params.popup_border_width or 1
 
-	result.popup_border_color = type(params.popup_border_color) == "string" 
+	result.popup_border_color = type(params.popup_border_color) == "string"
 		and params.popup_border_color or beautiful.bg_focus
 
-	result.popup_maximum_width = type(params.popup_maximum_width) == "number" 
+	result.popup_maximum_width = type(params.popup_maximum_width) == "number"
 		and params.popup_maximum_width or 400
 
-	result.state_playing = type(params.state_playing) == "string" 
-		and params.state_playing or "󰝚 " 
-	
-	result.state_paused = type(params.state_paused) == "string" 
+	result.state_playing = type(params.state_playing) == "string"
+		and params.state_playing or "󰝚  "
+
+	result.state_paused = type(params.state_paused) == "string"
 		and params.state_paused or "  "
 
 	result.max_chars = type(params.max_chars) == "number" and params.max_chars or 34
 
-	result.media_icons_default = type(params.media_icons_default) == "string" 
-		and params.media_icons_default 
-		or ( result.widget_dir and result.widget_dir .. local_media_icons.default )
+	result.media_icons_default = type(params.media_icons_default) == "string"
+		and params.media_icons_default
+		or (result.widget_dir and result.widget_dir .. local_media_icons.default)
 		or media_icons.default
-	
-	result.media_icons_spotify = type(params.media_icons_spotify) == "string" 
+
+	result.media_icons_spotify = type(params.media_icons_spotify) == "string"
 		and params.media_icons_spotify
-		or ( result.widget_dir and result.widget_dir .. local_media_icons.spotify )
+		or (result.widget_dir and result.widget_dir .. local_media_icons.spotify)
 		or media_icons.spotify
-	
-	result.media_icons_firefox = type(params.media_icons_firefox) == "string" 
-		and params.media_icons_firefox 
-		or ( result.widget_dir and result.widget_dir .. local_media_icons.firefox )
+
+	result.media_icons_firefox = type(params.media_icons_firefox) == "string"
+		and params.media_icons_firefox
+		or (result.widget_dir and result.widget_dir .. local_media_icons.firefox)
 		or media_icons.firefox
-	
-	result.media_icons_totem = type(params.media_icons_totem) == "string" 
-		and params.media_icons_totem 
-		or ( result.widget_dir and result.widget_dir .. local_media_icons.totem )
+
+	result.media_icons_totem = type(params.media_icons_totem) == "string"
+		and params.media_icons_totem
+		or (result.widget_dir and result.widget_dir .. local_media_icons.totem)
 		or media_icons.totem
 
-	result.media_icons_rhythmbox = type(params.media_icons_rhythmbox) == "string" 
-		and params.media_icons_rhythmbox 
-		or ( result.widget_dir and result.widget_dir .. local_media_icons.rhythmbox )
+	result.media_icons_rhythmbox = type(params.media_icons_rhythmbox) == "string"
+		and params.media_icons_rhythmbox
+		or (result.widget_dir and result.widget_dir .. local_media_icons.rhythmbox)
 		or media_icons.rhythmbox
 
 	if type(params.media_icons) == "table" then
 		-- loop through properties
-		for player_name, icon_path in pairs(params.media_icons) 
+		for player_name, icon_path in pairs(params.media_icons)
 		do
-		    if type(icon_path) == "string" then
-			    result["media_icons_" .. player_name] = icon_path
-		    end
+			if type(icon_path) == "string" then
+				result["media_icons_" .. player_name] = icon_path
+			end
 		end
 	end
-	
+
 	return result
 end
 
@@ -207,344 +206,378 @@ end
 --
 local function init_mpris_widget(params)
 
-local props = initProps(params)
+	-- PRIVATE PROPERTIES
+	--
 
-local main_player = ""
+	local props = initProps(params)
+	local main_player = ""
+	local refreshing = false
 
-local refreshing = false
+	-- init textboxes
+	local mpris_textbox = wibox.widget.textbox();
+	local mpris_textbox_middle = nil;
+	local mpris_textbox_bottom = nil;
 
-local function get_list_metadata_cmd()
-	return props.script_path .. ( props.ignore_player and ( " -i " .. props.ignore_player) or "" )
-end
+	-- init mpris widget
+	local mpris_widget;
+	if props.scroll_enabled then
+		local scroll_widget;
+		if props.scroll_position == "vertical" then
+			mpris_textbox_middle = wibox.widget {
+				text = " ",
+				widget = wibox.widget.textbox
+			}
+			mpris_textbox_bottom = wibox.widget.textbox()
 
-local mpris_textbox = wibox.widget.textbox();
-local mpris_textbox_middle = nil;
-local mpris_textbox_bottom = nil;
+			scroll_widget = wibox.widget {
+				layout = wibox.container.scroll.vertical,
+				step_function = props.scroll_step_function,
+				speed = props.scroll_speed,
+				{
+					{
+						{
+							mpris_textbox,
+							widget = wibox.container.place
+						},
+						mpris_textbox_middle,
+						{
+							mpris_textbox_bottom,
+							widget = wibox.container.place
+						},
+						layout = wibox.layout.fixed.vertical
+					},
+					top = props.scroll_margin_top,
+					bottom = props.scroll_margin_bottom,
+					widget = wibox.container.margin
+				}
+			}
 
-local mpris_textbox_container;
+			mpris_widget = wibox.widget {
+				scroll_widget,
+				width = props.scroll_max_size,
+				widget = wibox.container.constraint
+			}
+		else
+			scroll_widget = wibox.widget {
+				layout = wibox.container.scroll.horizontal,
+				max_size = props.scroll_max_size,
+				step_function = props.scroll_step_function,
+				speed = props.scroll_speed,
+				mpris_textbox,
+			}
 
-if props.scroll_enabled then
-    local scroll_widget; 
-    if props.scroll_position == "vertical" then
-	mpris_textbox_middle = wibox.widget {
-		text = " ",
-		widget = wibox.widget.textbox
-	}
-	mpris_textbox_bottom = wibox.widget.textbox()
-	
-	scroll_widget = wibox.widget {
-		layout = wibox.container.scroll.vertical,
-		step_function = props.scroll_step_function, 
-		speed = props.scroll_speed,
-		{
-		    {
-			{
-			    mpris_textbox,
-			    widget = wibox.container.place
-			},
-			mpris_textbox_middle,
-			{
-			    mpris_textbox_bottom,
-			    widget = wibox.container.place
-			},
-	    	    	layout = wibox.layout.fixed.vertical
-	    	    },
-		    top = props.scroll_margin_top,
-		    bottom = props.scroll_margin_bottom,
-		    widget = wibox.container.margin
-		}
-	}
-
-	mpris_textbox_container = wibox.widget {
-	    scroll_widget,
-	    width = props.scroll_max_size,
-	    widget = wibox.container.constraint
-    	}
-    else
-        scroll_widget = wibox.widget {
-		layout = wibox.container.scroll.horizontal,
-		max_size = props.scroll_max_size,
-		step_function = props.scroll_step_function, 
-		speed = props.scroll_speed,
-		mpris_textbox,
-	}
-	
-	mpris_textbox_container = scroll_widget
-    end
-    scroll_widget:set_fps(props.scroll_fps)
-else
-    mpris_textbox_container = wibox.widget {
-	layout = wibox.container.background,
-	mpris_textbox
-    }
-end
-
-local mpris_popup = awful.popup {
-    ontop = true,
-    visible = false, -- should be hidden when created
-    shape = function(cr, width, height)
-        gears.shape.rounded_rect(cr, width, height, 4)
-    end,
-    border_width = props.popup_border_width,
-    border_color = props.popup_border_color,
-    maximum_width = props.popup_maximum_width,
-    offset = { y = 5 },
-    widget = {},
-    fg = props.fg,
-    bg = props.bg,
-    bgimage = props.bgimage
-}
-
-local scroll_handler = {
-	hide_bottom = function ()
-	    if mpris_textbox_middle and mpris_textbox_middle.visible then
-		mpris_textbox_middle.visible = not mpris_textbox_middle.visible
-	    end
-	    if mpris_textbox_bottom then
-		mpris_textbox_bottom:set_text("")
-		if mpris_textbox_bottom.visible then
-		    mpris_textbox_bottom.visible = not mpris_textbox_bottom.visible
-	        end
-	    end 
-	end,
-	show_bottom = function (txt)
-	    if mpris_textbox_middle and not mpris_textbox_middle.visible then
-		mpris_textbox_middle.visible = not mpris_textbox_middle.visible
-	    end
-	    if mpris_textbox_bottom then
-		mpris_textbox_bottom:set_text(txt)
-		if not mpris_textbox_bottom.visible then
-		    mpris_textbox_bottom.visible = not mpris_textbox_bottom.visible
-	        end
-	    end 
-	end
-}
-
-local function internal_refresh(_, stdout)
-	local widget = mpris_textbox
-	local widget_bottom = mpris_textbox_bottom
-
-	if refreshing then
-		return
-	end
-
-        if stdout == '' then
-            widget:set_text(props.empty_text)
-	    if widget_bottom then
-		widget_bottom:set_text(props.empty_text)
-	    end
-            if mpris_popup.visible then
-                mpris_popup.visible = not mpris_popup.visible
-            end
-            return
-        end
-
-	refreshing = true
-
-	local new_main_player = ""
-        local content_text = ""
-	local content_text_bottom = ""
-        local mpris_popup_rows = { layout = wibox.layout.fixed.vertical }
-        local players_info = {}
-        for v in string.gmatch(stdout, "([^\r\n]+)") 
-        do
-            table.insert(players_info, v:match "^%s*(.-)%s*$")
-        end
-
-        for k, player_metadata in ipairs(players_info) do
-                -- Declare/init vars
-                local player_icon = props.media_icons_default
-                local states = {
-                    Playing = props.state_playing,
-                    Paused = props.state_paused
-                }
-                local state_separator = " "
-                local mpris_now = {
-                    state           = "N/A",
-                    artist          = "N/A",
-                    title           = "N/A",
-                    art_url         = "N/A",
-                    album           = "N/A",
-                    album_artist    = "N/A",
-                    player_name     = "N/A"
-                }
-                local link = {
-                    'state',
-                    'artist',
-                    'title',
-                    'art_url',
-                    'album',
-                    'album_artist',
-                    'player_name'
-                } 
-    
-                -- Fill mpris_now
-                local i = 1
-                for v in string.gmatch(player_metadata, "([^;]+)") 
-                do
-                    if link[i] then
-                        -- trim value
-                        local trimmed_v = v:match "^%s*(.-)%s*$"  
-                        -- trimmed value or "N/A"
-                        mpris_now[ link[i] ] = trimmed_v ~= "" and trimmed_v or "N/A"
-                    end
-                    i = i + 1
-                end
-            
-                if states[mpris_now.state] then
-                    mpris_now.state = states[mpris_now.state]
-                else
-                    state_separator = " - "
-                end
-
-                -- Display
-                if mpris_now.state ~= "N/A" then
-                    -- widget's content
-                    local content_w = mpris_now.player_name
-		    local content_top = mpris_now.player_name
-		    local content_bottom = ""
-
-                    if mpris_now.artist ~= "N/A" and  mpris_now.title ~= "N/A" then
-			content_w = mpris_now.artist .. " - " .. mpris_now.title
-			content_top = mpris_now.title
-			content_bottom = mpris_now.artist
-                    elseif mpris_now.title ~= "N/A" then
-                        content_w = mpris_now.title
-			content_top = mpris_now.title
-                    elseif mpris_now.artist ~= "N/A" then
-                        content_w = mpris_now.artist
-			content_bottom = mpris_now.artist
-                    end
-
-		    if props["media_icons_" .. mpris_now.player_name] then
-			player_icon = props["media_icons_" .. mpris_now.player_name]
-                    	if string.find(mpris_now.player_name, 'firefox') then
-                            player_icon = props.media_icons_firefox
-                            content_w = mpris_now.title .. " - " .. mpris_now.artist
-			end
-                    end
-
-		    -- the first one in the list or/and the selected one
-                    if content_text == "" or main_player ~= "" and mpris_now.player_name == main_player then
-			new_main_player = mpris_now.player_name
-
-			if widget_bottom then
-			    content_text = ellipsize(mpris_now.state ..state_separator .. content_top, props.max_chars)
-			    content_text_bottom = ellipsize(content_bottom, props.max_chars)
-			else
-			    content_text = ellipsize(mpris_now.state ..state_separator .. content_w, props.max_chars)
-		    	end
-
-			if props.scroll_enabled and not widget_bottom then
-			    content_text = content_text .. " "
-			end
-                    end
-
-                    -- popup content   
-		    local popup_row = wibox.widget {
-                        {
-                            {
-                                {
-                                    image = player_icon,
-                                    forced_width = 48,
-                                    forced_height = 48,
-                                    widget = wibox.widget.imagebox
-                                },
-                                {
-                                    {
-                                        markup = "<b>" .. escape_f(mpris_now.title) .. "</b>",
-                                        widget = wibox.widget.textbox
-                                    },
-                                    {
-                                        text = mpris_now.artist,
-                                        widget = wibox.widget.textbox
-                                    },
-                                    {
-                                        markup = "<i>" .. escape_f(mpris_now.album ~= "N/A" and mpris_now.album or "") .. "</i>",
-                                        widget = wibox.widget.textbox
-                                    },
-                                    layout = wibox.layout.fixed.vertical
-                                },
-                                spacing = 12,
-                                layout = wibox.layout.fixed.horizontal
-                            },
-                            margins = 8,
-                            widget = wibox.container.margin
-                        },
-                        widget = wibox.container.background
-                    }
-		    popup_row:connect_signal("button::release", function(self, _, _, button)
-			if button == 1 then
-			    if main_player ~= mpris_now.player_name then
-			    	main_player = mpris_now.player_name
-			    	internal_refresh(widget, stdout)
-			    end
-			end
-		    end)
-		    -- add row
-		    if mpris_now.player_name == new_main_player then
-			table.insert(mpris_popup_rows, 1, popup_row)
-		    else
-			table.insert(mpris_popup_rows, popup_row)
-		    end
-        	end
-        end
-	
-	refreshing = false
-	
-	main_player = new_main_player
-        
-	widget:set_text(content_text ~= "" and content_text or props.empty_text)
-	if content_text_bottom ~= "" then
-	    scroll_handler.show_bottom(content_text_bottom)
+			mpris_widget = scroll_widget
+		end
+		scroll_widget:set_fps(props.scroll_fps)
 	else
-	    scroll_handler.hide_bottom()
+		mpris_widget = wibox.widget {
+			layout = wibox.container.background,
+			mpris_textbox
+		}
 	end
 
-        mpris_popup:setup(mpris_popup_rows)
-	if #mpris_popup_rows == 0 and mpris_popup.visible then
-	    mpris_popup.visible = not mpris_popup.visible
+	-- init mpris popup
+	local mpris_popup = awful.popup {
+		ontop = true,
+		visible = false, -- should be hidden when created
+		shape = function(cr, width, height)
+			gears.shape.rounded_rect(cr, width, height, 4)
+		end,
+		border_width = props.popup_border_width,
+		border_color = props.popup_border_color,
+		maximum_width = props.popup_maximum_width,
+		offset = { y = 5 },
+		widget = {},
+		fg = props.fg,
+		bg = props.bg,
+		bgimage = props.bgimage
+	}
+
+	local scroll_handler = {
+		hide_bottom = function()
+			if mpris_textbox_middle and mpris_textbox_middle.visible then
+				mpris_textbox_middle.visible = not mpris_textbox_middle.visible
+			end
+			if mpris_textbox_bottom then
+				mpris_textbox_bottom:set_text("")
+				if mpris_textbox_bottom.visible then
+					mpris_textbox_bottom.visible = not mpris_textbox_bottom.visible
+				end
+			end
+		end,
+		show_bottom = function(txt)
+			if mpris_textbox_middle and not mpris_textbox_middle.visible then
+				mpris_textbox_middle.visible = not mpris_textbox_middle.visible
+			end
+			if mpris_textbox_bottom then
+				mpris_textbox_bottom:set_text(txt)
+				if not mpris_textbox_bottom.visible then
+					mpris_textbox_bottom.visible = not mpris_textbox_bottom.visible
+				end
+			end
+		end
+	}
+
+	-- PRIVATE FUNCTIONS
+	--
+
+	local function get_list_metadata_cmd()
+		return props.script_path .. (props.ignore_player and (" -i " .. props.ignore_player) or "")
 	end
-end
 
-local function refresh()
-    awful.spawn.easy_async_with_shell(get_list_metadata_cmd(), function(stdout)
-	internal_refresh(mpris_textbox, stdout)
-    end)
-end
+	local function internal_refresh(_, stdout)
+		local widget = mpris_textbox
+		local widget_bottom = mpris_textbox_bottom
 
-local _, mpris_timer = awful.widget.watch(
-    -- format 'playerctl metadata' command result
-    { awful.util.shell, "-c", get_list_metadata_cmd() },
-    props.timeout,
-    internal_refresh,
-    mpris_textbox
-)
+		if refreshing then
+			return
+		end
 
-mpris_textbox_container:connect_signal("button::release", function(self, _, _, button, _, find_widgets_result)
-    if button == 1 and main_player then
-        -- play/pause
-	local cmd = "playerctl play-pause"
-	if main_player ~= "" then
-	    cmd = cmd .. " --player=" .. main_player
+		if stdout == '' then
+			widget:set_text(props.empty_text)
+			if widget_bottom then
+				widget_bottom:set_text(props.empty_text)
+			end
+			if mpris_popup.visible then
+				mpris_popup.visible = not mpris_popup.visible
+			end
+			return
+		end
+
+		refreshing = true
+
+		local new_main_player = ""
+		local content_text = ""
+		local content_text_bottom = ""
+		local mpris_popup_rows = { layout = wibox.layout.fixed.vertical }
+		local players_info = {}
+		for v in string.gmatch(stdout, "([^\r\n]+)")
+		do
+			table.insert(players_info, v:match "^%s*(.-)%s*$")
+		end
+
+		for k, player_metadata in ipairs(players_info) do
+			-- Declare/init vars
+			local player_icon = props.media_icons_default
+			local states = {
+				Playing = props.state_playing,
+				Paused = props.state_paused
+			}
+			local state_separator = " "
+			local mpris_now = {
+				state        = "N/A",
+				artist       = "N/A",
+				title        = "N/A",
+				art_url      = "N/A",
+				album        = "N/A",
+				album_artist = "N/A",
+				player_name  = "N/A"
+			}
+			local link = {
+				'state',
+				'artist',
+				'title',
+				'art_url',
+				'album',
+				'album_artist',
+				'player_name'
+			}
+
+			-- Fill mpris_now
+			local i = 1
+			for v in string.gmatch(player_metadata, "([^;]+)")
+			do
+				if link[i] then
+					-- trim value
+					local trimmed_v = v:match "^%s*(.-)%s*$"
+					-- trimmed value or "N/A"
+					mpris_now[link[i]] = trimmed_v ~= "" and trimmed_v or "N/A"
+				end
+				i = i + 1
+			end
+
+			if states[mpris_now.state] then
+				mpris_now.state = states[mpris_now.state]
+			else
+				state_separator = " - "
+			end
+
+			-- Display
+			if mpris_now.state ~= "N/A" then
+				-- widget's content
+				local content_w = mpris_now.player_name
+				local content_top = mpris_now.player_name
+				local content_bottom = ""
+
+				if mpris_now.artist ~= "N/A" and mpris_now.title ~= "N/A" then
+					content_w = mpris_now.artist .. " - " .. mpris_now.title
+					content_top = mpris_now.title
+					content_bottom = mpris_now.artist
+				elseif mpris_now.title ~= "N/A" then
+					content_w = mpris_now.title
+					content_top = mpris_now.title
+				elseif mpris_now.artist ~= "N/A" then
+					content_w = mpris_now.artist
+					content_bottom = mpris_now.artist
+				end
+
+				if props["media_icons_" .. mpris_now.player_name] then
+					player_icon = props["media_icons_" .. mpris_now.player_name]
+					if string.find(mpris_now.player_name, 'firefox') then
+						player_icon = props.media_icons_firefox
+						content_w = mpris_now.title .. " - " .. mpris_now.artist
+					end
+				end
+
+				-- the first one in the list or/and the selected one
+				if content_text == "" or main_player ~= "" and mpris_now.player_name == main_player then
+					new_main_player = mpris_now.player_name
+
+					if widget_bottom then
+						content_text = ellipsize(mpris_now.state .. state_separator .. content_top, props.max_chars)
+						content_text_bottom = ellipsize(content_bottom, props.max_chars)
+					else
+						content_text = ellipsize(mpris_now.state .. state_separator .. content_w, props.max_chars)
+					end
+
+					if props.scroll_enabled and not widget_bottom then
+						content_text = content_text .. " "
+					end
+				end
+
+				-- popup content
+				local popup_row = wibox.widget {
+					{
+						{
+							{
+								image = player_icon,
+								forced_width = 48,
+								forced_height = 48,
+								widget = wibox.widget.imagebox
+							},
+							{
+								{
+									markup = "<b>" .. escape_f(mpris_now.title) .. "</b>",
+									widget = wibox.widget.textbox
+								},
+								{
+									text = mpris_now.artist,
+									widget = wibox.widget.textbox
+								},
+								{
+									markup = "<i>" .. escape_f(mpris_now.album ~= "N/A" and mpris_now.album or "") .. "</i>",
+									widget = wibox.widget.textbox
+								},
+								layout = wibox.layout.fixed.vertical
+							},
+							spacing = 12,
+							layout = wibox.layout.fixed.horizontal
+						},
+						margins = 8,
+						widget = wibox.container.margin
+					},
+					widget = wibox.container.background
+				}
+				popup_row:connect_signal("button::release", function(self, _, _, button)
+					if button == 1 then
+						if main_player ~= mpris_now.player_name then
+							main_player = mpris_now.player_name
+							internal_refresh(widget, stdout)
+						end
+					end
+				end)
+				-- add row
+				if mpris_now.player_name == new_main_player then
+					table.insert(mpris_popup_rows, 1, popup_row)
+				else
+					table.insert(mpris_popup_rows, popup_row)
+				end
+			end
+		end
+
+		refreshing = false
+
+		main_player = new_main_player
+
+		widget:set_text(content_text ~= "" and content_text or props.empty_text)
+		if content_text_bottom ~= "" then
+			scroll_handler.show_bottom(content_text_bottom)
+		else
+			scroll_handler.hide_bottom()
+		end
+
+		mpris_popup:setup(mpris_popup_rows)
+		if #mpris_popup_rows == 0 and mpris_popup.visible then
+			mpris_popup.visible = not mpris_popup.visible
+		end
 	end
-        awful.spawn.easy_async_with_shell(cmd, refresh)
-    elseif button == 3 then
-        -- display details
-        if mpris_popup.visible then
-            -- hide details
-            mpris_popup.visible = not mpris_popup.visible
-        elseif main_player ~= "" then
-            -- display details next to { x=, y=, width=, height= }
-            mpris_popup:move_next_to(
-                find_widgets_result
-            )
-        end
-    end
-end)
 
-return mpris_textbox_container
+	local function refresh()
+		awful.spawn.easy_async_with_shell(get_list_metadata_cmd(), function(stdout)
+			internal_refresh(mpris_textbox, stdout)
+		end)
+	end
 
+	local function run_cmd_and_refresh(cmd)
+		awful.spawn.easy_async_with_shell(cmd, refresh)
+	end
+
+	local function run_control(control_cmd)
+		local cmd = "playerctl " .. control_cmd
+		if main_player ~= "" then
+			cmd = cmd .. " --player=" .. main_player
+		end
+		run_cmd_and_refresh(cmd)
+	end
+
+	-- PUBLIC METHODS
+	--
+
+	function mpris_widget:play_pause()
+		run_control("play-pause")
+	end
+
+	function mpris_widget:previous()
+		run_control("previous")
+	end
+
+	function mpris_widget:next()
+		run_control("next")
+	end
+
+	-- EVENT LISTENERS
+	--
+
+	mpris_widget:connect_signal("button::release", function(self, _, _, button, _, find_widgets_result)
+		if button == 1 and main_player then
+			-- play/pause
+			mpris_widget:play_pause()
+		elseif button == 3 then
+			-- display details
+			if mpris_popup.visible then
+				-- hide details
+				mpris_popup.visible = not mpris_popup.visible
+			elseif main_player ~= "" then
+				-- display details next to { x=, y=, width=, height= }
+				mpris_popup:move_next_to(
+					find_widgets_result
+				)
+			end
+		end
+	end)
+
+	-- WATCHERS
+	--
+
+	local _, mpris_timer = awful.widget.watch(
+		-- format 'playerctl metadata' command result
+			{ awful.util.shell, "-c", get_list_metadata_cmd() },
+			props.timeout,
+			internal_refresh,
+			mpris_textbox
+		)
+
+	return mpris_widget
 end
 
-return init_mpris_widget
+return setmetatable({}, { __call = function(_, ...) return init_mpris_widget(...) end })
