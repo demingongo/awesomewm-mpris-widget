@@ -346,6 +346,7 @@ local function init_mpris_widget(params)
 
 		refreshing = true
 
+		local main_player_metadata = nil
 		local new_main_player = ""
 		local content_text = ""
 		local content_text_bottom = ""
@@ -359,11 +360,6 @@ local function init_mpris_widget(params)
 		for k, player_metadata in ipairs(players_info) do
 			-- Declare/init vars
 			local player_icon = props.media_icons_default
-			local states = {
-				Playing = props.state_playing,
-				Paused = props.state_paused
-			}
-			local state_separator = " "
 			local mpris_now = {
 				state        = "N/A",
 				artist       = "N/A",
@@ -394,55 +390,22 @@ local function init_mpris_widget(params)
 					mpris_now[link[i]] = trimmed_v ~= "" and trimmed_v or "N/A"
 				end
 				i = i + 1
-			end
-
-			if states[mpris_now.state] then
-				mpris_now.state = states[mpris_now.state]
-			else
-				state_separator = " - "
-			end
+			end			
 
 			-- Display
 			if mpris_now.state ~= "N/A" then
 				-- widget's content
-				local content_w = mpris_now.player_name
-				local content_top = mpris_now.player_name
-				local content_bottom = ""
-
-				if mpris_now.artist ~= "N/A" and mpris_now.title ~= "N/A" then
-					content_w = mpris_now.artist .. " - " .. mpris_now.title
-					content_top = mpris_now.title
-					content_bottom = mpris_now.artist
-				elseif mpris_now.title ~= "N/A" then
-					content_w = mpris_now.title
-					content_top = mpris_now.title
-				elseif mpris_now.artist ~= "N/A" then
-					content_w = mpris_now.artist
-					content_bottom = mpris_now.artist
-				end
-
 				if props["media_icons_" .. mpris_now.player_name] then
 					player_icon = props["media_icons_" .. mpris_now.player_name]
 					if string.find(mpris_now.player_name, 'firefox') then
 						player_icon = props.media_icons_firefox
-						content_w = mpris_now.title .. " - " .. mpris_now.artist
 					end
 				end
-
+				
 				-- the first one in the list or/and the selected one
-				if content_text == "" or main_player ~= "" and mpris_now.player_name == main_player then
+				if not main_player_metadata or main_player ~= "" and mpris_now.player_name == main_player then
 					new_main_player = mpris_now.player_name
-
-					if widget_bottom then
-						content_text = ellipsize(mpris_now.state .. state_separator .. content_top, props.max_chars)
-						content_text_bottom = ellipsize(content_bottom, props.max_chars)
-					else
-						content_text = ellipsize(mpris_now.state .. state_separator .. content_w, props.max_chars)
-					end
-
-					if props.scroll_enabled and not widget_bottom then
-						content_text = content_text .. " "
-					end
+					main_player_metadata = mpris_now
 				end
 
 				-- popup content
@@ -499,10 +462,63 @@ local function init_mpris_widget(params)
 
 		main_player = new_main_player
 
-		widget:set_text(content_text ~= "" and content_text or props.empty_text)
-		if content_text_bottom ~= "" then
-			scroll_handler.show_bottom(content_text_bottom)
+		if main_player_metadata then
+			-- format text
+			--
+
+			local content_full_text = main_player_metadata.player_name
+			local content_top = main_player_metadata.player_name
+			local content_bottom = ""
+			local state_text = main_player_metadata.state
+			local state_separator = " "
+			local states = {
+				Playing = props.state_playing,
+				Paused = props.state_paused
+			}
+			if states[main_player_metadata.state] then
+				state_text = states[main_player_metadata.state]
+			else
+				state_separator = " - "
+			end
+
+			if string.find(main_player_metadata.player_name, 'firefox') then
+				content_full_text = main_player_metadata.title .. " - " .. main_player_metadata.artist
+				content_top = main_player_metadata.title
+				content_bottom = main_player_metadata.artist
+			elseif main_player_metadata.artist ~= "N/A" and main_player_metadata.title ~= "N/A" then
+				content_full_text = main_player_metadata.artist .. " - " .. main_player_metadata.title
+				content_top = main_player_metadata.title
+				content_bottom = main_player_metadata.artist
+			elseif main_player_metadata.title ~= "N/A" then
+				content_full_text = main_player_metadata.title
+				content_top = main_player_metadata.title
+			elseif main_player_metadata.artist ~= "N/A" then
+				content_full_text = main_player_metadata.artist
+				content_bottom = main_player_metadata.artist
+			end
+			
+			if widget_bottom then
+				content_text = ellipsize(state_text .. state_separator .. content_top, props.max_chars)
+				content_text_bottom = ellipsize(content_bottom, props.max_chars)
+			else
+				content_text = ellipsize(state_text .. state_separator .. content_full_text, props.max_chars)
+			end
+			-- add space at the end for horizontal scroll
+			if props.scroll_enabled and not widget_bottom then
+				content_text = content_text .. " "
+			end
+
+			-- set text
+			--
+
+			widget:set_text(content_text ~= "" and content_text or "WHAT" or props.empty_text)
+			if content_text_bottom ~= "" then
+				scroll_handler.show_bottom(content_text_bottom)
+			else
+				scroll_handler.hide_bottom()
+			end
 		else
+			widget:set_text(props.empty_text)
 			scroll_handler.hide_bottom()
 		end
 
