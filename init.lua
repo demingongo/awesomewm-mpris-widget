@@ -227,6 +227,7 @@ local function init_mpris_widget(params)
 
 	-- init textboxes
 	local mpris_textbox = wibox.widget.textbox();
+	mpris_textbox.font = props.font
 	local mpris_textbox_middle = nil;
 	local mpris_textbox_bottom = nil;
 
