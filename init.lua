@@ -4,6 +4,7 @@
 -- Link: https://github.com/demingongo
 -- Availability: https://github.com/demingongo/awesomewm-mpris-widget
 
+-- URGENT: noticed that text didn't always refresh in horizontal scroll containers. fix that
 -- TODO: preferred player
 -- TODO: Find a way to display artUrl (download it and cache it maybe?)
 
@@ -12,7 +13,7 @@ local wibox = require("wibox")
 local awful = require("awful")
 local escape_f = require("awful.util").escape;
 local beautiful = require("beautiful")
---local naughty = require("naughty")
+-- local naughty = require("naughty")
 
 local get_players_metadata_script_path = os.getenv("HOME") .. "/.local/bin/list_players_metadata"
 
@@ -167,6 +168,16 @@ local function initProps(props)
 		end
 	end
 
+	-- Events
+	--
+
+	if type(params.all_clients_closed) == "function" then
+		result.all_clients_closed = params.all_clients_closed
+	end
+	if type(params.clients_running) == "function" then
+		result.clients_running = params.clients_running
+	end
+
 	return result
 end
 
@@ -212,6 +223,7 @@ local function init_mpris_widget(params)
 	local props = initProps(params)
 	local main_player = ""
 	local refreshing = false
+	local current_state = "started"
 
 	-- init textboxes
 	local mpris_textbox = wibox.widget.textbox();
@@ -385,14 +397,26 @@ local function init_mpris_widget(params)
 			return
 		end
 
-		if stdout == '' then
+		if #stdout < 2 then
+			if current_state == "closed" then return end
 			widget:set_text(props.empty_text)
 			scroll_handler.hide_bottom()
 			if mpris_popup.visible then
 				mpris_popup.visible = not mpris_popup.visible
 			end
+			current_state = "closed"
+
+			if props.all_clients_closed then
+				props.all_clients_closed()
+			end
 			return
 		end
+
+		if current_state ~= "playing" and props.clients_running then
+			props.clients_running()
+		end
+
+		current_state = "running"
 
 		refreshing = true
 
@@ -496,6 +520,7 @@ local function init_mpris_widget(params)
 					if button == 1 then
 						if main_player ~= mpris_now.player_name then
 							main_player = mpris_now.player_name
+							-- naughty.notify({text= "main player is now ".. main_player})
 							internal_refresh(widget, stdout)
 						end
 					end
@@ -519,6 +544,7 @@ local function init_mpris_widget(params)
 
 			-- set text
 			--
+			-- naughty.notify({text= "mpris: " .. formatted_content.text ~= "" and formatted_content.text or props.empty_text})
 			widget:set_text(formatted_content.text ~= "" and formatted_content.text or props.empty_text)
 			if formatted_content.text_bottom ~= "" then
 				scroll_handler.show_bottom(formatted_content.text_bottom)
