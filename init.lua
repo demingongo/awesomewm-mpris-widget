@@ -15,7 +15,11 @@ local escape_f = require("awful.util").escape;
 local beautiful = require("beautiful")
 -- local naughty = require("naughty")
 
-local get_players_metadata_script_path = os.getenv("HOME") .. "/.local/bin/list_players_metadata"
+local WIDGET_DIR = os.getenv("HOME") .. "/.config/awesome/awesomewm-mpris-widget"
+
+local local_script_path = "/bin/list_players_metadata"
+
+local get_players_metadata_script_path = WIDGET_DIR .. local_script_path
 
 local local_media_icons = {
 	default = "/icons/candy-icons/juk.svg",
@@ -26,11 +30,11 @@ local local_media_icons = {
 }
 
 local media_icons = {
-	default = os.getenv("HOME") .. "/.icons/candy-icons/apps/scalable/juk.svg",
-	firefox = os.getenv("HOME") .. "/.icons/candy-icons/apps/scalable/firefox.svg",
-	spotify = os.getenv("HOME") .. "/.icons/candy-icons/apps/scalable/spotify-client.svg",
-	totem = "/usr/share/icons/hicolor/scalable/apps/org.gnome.Totem.svg",
-	rhythmbox = "/usr/share/icons/hicolor/scalable/apps/org.gnome.Rhythmbox3.svg"
+	default = WIDGET_DIR .. local_media_icons.default,
+	firefox = WIDGET_DIR .. local_media_icons.firefox,
+	rhythmbox = WIDGET_DIR .. local_media_icons.rhythmbox,
+	spotify = WIDGET_DIR .. local_media_icons.spotify,
+	totem = WIDGET_DIR .. local_media_icons.totem
 }
 
 local function ellipsize(text, length)
@@ -64,7 +68,7 @@ local function initProps(props)
 	result.script_path = type(params.metadata_script_path) == "string"
 		and params.metadata_script_path ~= ""
 		and params.metadata_script_path
-		or (result.widget_dir and result.widget_dir .. "/bin/list_players_metadata")
+		or (result.widget_dir and result.widget_dir .. local_script_path)
 		or get_players_metadata_script_path
 
 	result.ignore_player = type(params.ignore_player) == "string" and params.ignore_player or nil
