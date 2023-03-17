@@ -244,7 +244,9 @@ local function init_mpris_widget(params)
 				text = " ",
 				widget = wibox.widget.textbox
 			}
+			mpris_textbox_middle.font = props.font
 			mpris_textbox_bottom = wibox.widget.textbox()
+			mpris_textbox_bottom.font = props.font
 
 			scroll_widget = wibox.widget {
 				layout = wibox.container.scroll.vertical,
