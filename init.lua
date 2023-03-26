@@ -12,6 +12,7 @@ local gears = require("gears")
 local wibox = require("wibox")
 local awful = require("awful")
 local escape_f = require("awful.util").escape;
+local lookup_icon_f = require("menubar.utils").lookup_icon
 local beautiful = require("beautiful")
 -- local naughty = require("naughty")
 
@@ -482,6 +483,9 @@ local function init_mpris_widget(params)
 					if string.find(mpris_now.player_name, 'firefox') then
 						player_icon = props.media_icons_firefox
 					end
+				else
+					-- icon in system or the icon set by the widget
+					player_icon = lookup_icon_f(mpris_now.player_name) or player_icon
 				end
 
 				-- the first one in the list or/and the selected one
