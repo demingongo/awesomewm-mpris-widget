@@ -374,7 +374,7 @@ local function init_mpris_widget(params)
 		-- format text (title, artist, ...)
 
 		if string.find(player_metadata.player_name, 'firefox') then
-			content_full_text = player_metadata.title .. " - " .. player_metadata.artist
+			content_full_text = player_metadata.title .. props.separator .. player_metadata.artist
 			content_top = player_metadata.title
 			formatted_content.text_bottom = player_metadata.artist ~= "N/A" and player_metadata.artist or ""
 		elseif player_metadata.artist ~= "N/A" and player_metadata.title ~= "N/A" then
