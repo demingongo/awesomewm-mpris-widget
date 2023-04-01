@@ -63,6 +63,10 @@ local function initProps(props)
 		and params.empty_text
 		or ""
 
+	result.separator = type(params.separator) == "string"
+		and params.separator
+		or " - "
+
 	-- Function
 	--
 
@@ -190,6 +194,7 @@ end
 -- @params {{
 -- 	widget_dir = string,
 -- 	empty_text = string,
+--  separator = string,
 --	metadata_script_path = string,
 -- 	ignore_player = string,
 -- 	timeout = number,
@@ -373,7 +378,7 @@ local function init_mpris_widget(params)
 			content_top = player_metadata.title
 			formatted_content.text_bottom = player_metadata.artist ~= "N/A" and player_metadata.artist or ""
 		elseif player_metadata.artist ~= "N/A" and player_metadata.title ~= "N/A" then
-			content_full_text = player_metadata.artist .. " - " .. player_metadata.title
+			content_full_text = player_metadata.artist .. props.separator .. player_metadata.title
 			content_top = player_metadata.title
 			formatted_content.text_bottom = player_metadata.artist
 		elseif player_metadata.title ~= "N/A" then
