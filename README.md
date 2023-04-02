@@ -2,6 +2,8 @@
 
 MPRIS widget for AwesomeWM.
 
+Play and select the media player you want to control.
+
 ![Image](awesomewm-mpris-widget.gif)
 
 ## Dependencies
