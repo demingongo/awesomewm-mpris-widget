@@ -77,9 +77,9 @@ The popup show all MPRIS clients that have started. You can select (left-click) 
 | `media_icons` | `nil` | Table of keys and values. The key is the name of the client (e.g.: `firefox`, `spotify`, ...) and the value is the icon's path |
 | `media_icons.default` | `nil` | Path to a default icon if no icon was found for a media player |
 | `ignore_player` | `nil` | String of media players to ignore separated by commas (e.g.: `"firefox,musikcube,totem"`) |
-| `timeout` | `3` | Frequency check |
+| `timeout` | `3` | check interval in seconds |
 | `scroll` | `400` | Table of keys and values to configure the scrolling text ability |
-| `scroll.enabled` | `false` | Enable scrolling text |
+| `scroll.enabled` | `false` | Enable/disable scrolling text |
 | `scroll.position` | `"horizontal"` | `"horizontal"` or `"vertical"` scroll |
 | `scroll.max_size` | `170` | Widget's maximum width |
 | `scroll.step_function` | `wibox.container.scroll.step_functions.waiting_nonlinear_back_and_forth` | Scrolling function |
