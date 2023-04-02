@@ -2,6 +2,8 @@
 
 MPRIS widget for AwesomeWM.
 
+![Image](awesomewm-mpris-widget.gif)
+
 ## Dependencies
 
 - [playerctl](https://github.com/altdesktop/playerctl#installing)
