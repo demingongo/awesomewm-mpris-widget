@@ -17,7 +17,7 @@ Help()
    echo
    echo "options:"
    echo "	--h			Print help."
-   echo "	--i			Name of players to be ignored. Separated by colon."
+   echo "	--i			Name of players to be ignored. Separated by comma."
    echo
 }
 

@@ -80,7 +80,7 @@ The popup shows all MPRIS clients that have started. You can select (left-click)
 | `popup_maximum_width` | `400` | Maximum width of the popup |
 | `media_icons` | `nil` | Table of keys and values. The key is the name of the client (e.g.: `firefox`, `spotify`, ...) and the value is the icon's path |
 | `media_icons.default` | `nil` | Path to a default icon if no icon was found for a media player |
-| `ignore_player` | `nil` | String of media players to ignore separated by commas (e.g.: `"firefox,musikcube,totem"`) |
+| `ignore_player` | `nil` | String of media players to ignore separated by comma (e.g.: `"firefox,musikcube,totem"`) |
 | `timeout` | `3` | check interval in seconds |
 | `scroll` | `400` | Table of keys and values to configure the scrolling text ability |
 | `scroll.enabled` | `false` | Enable/disable scrolling text |
