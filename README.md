@@ -53,7 +53,7 @@ mpris_widget:next()
 
 **Right-click** the widget to **show/hide the popup**. 
 
-The popup show all MPRIS clients that have started. You can select (left-click) a media player to control from the popup.
+The popup shows all MPRIS clients that have started. You can select (left-click) a media player to control from the popup.
 
 
 ## Configuration
