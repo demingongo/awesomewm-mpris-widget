@@ -84,12 +84,12 @@ The popup shows all MPRIS clients that have started. You can select (left-click)
 | `timeout` | `3` | check interval in seconds |
 | `scroll` | `400` | Table of keys and values to configure the scrolling text ability |
 | `scroll.enabled` | `false` | Enable/disable scrolling text |
-| `scroll.position` | `"horizontal"` | `"horizontal"` or `"vertical"` scroll |
+| `scroll.orientation` | `"horizontal"` | `"horizontal"` or `"vertical"` scroll |
 | `scroll.max_size` | `170` | Widget's maximum width |
 | `scroll.step_function` | `wibox.container.scroll.step_functions.waiting_nonlinear_back_and_forth` | Scrolling function |
-| `scroll.speed` | `8` when `scroll.position="vertical"`, otherwise `20` | Scrolling speed |
+| `scroll.speed` | `8` when `scroll.orientation="vertical"`, otherwise `20` | Scrolling speed |
 | `scroll.fps` | `10` | Scrolling fps|
-| `scroll.margin_top` | `5` | Scrolling margin top (useful when `scroll.position="vertical"`) |
-| `scroll.margin_bottom` | `5` | Scrolling margin bottom (useful when `scroll.position="vertical"`) |
+| `scroll.margin_top` | `5` | Scrolling margin top (useful when `scroll.orientation="vertical"`) |
+| `scroll.margin_bottom` | `5` | Scrolling margin bottom (useful when `scroll.orientation="vertical"`) |
 | `all_clients_closed` | `nil` | Function to execute when all media players got closed |
 | `clients_running` | `nil` | Function to execute when media players started |

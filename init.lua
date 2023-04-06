@@ -84,8 +84,14 @@ local function initProps(props)
 		result.scroll_enabled = type(params.scroll.enabled) == "boolean"
 			and params.scroll.enabled or false
 
-		result.scroll_position = (params.scroll.position == "vertical")
-			and params.scroll.position or "horizontal"
+		-- DEPRECATED: keep "scroll.position" for retro-compatibility. Use "scroll.orientation"
+		result.scroll_orientation = (params.scroll.position == "vertical")
+				and params.scroll.position or "horizontal"
+
+		if params.scroll.orientation then
+			result.scroll_orientation = (params.scroll.orientation == "vertical")
+				and params.scroll.orientation or "horizontal"
+		end
 
 		result.scroll_max_size = type(params.scroll.max_size) == "number"
 			and params.scroll.max_size or 170
@@ -96,7 +102,7 @@ local function initProps(props)
 
 		result.scroll_speed = type(params.scroll.speed) == "number"
 			and params.scroll.speed or
-			(result.scroll_position == "vertical" and 8 or 20)
+			(result.scroll_orientation == "vertical" and 8 or 20)
 
 		result.scroll_fps = type(params.scroll.fps) == "number"
 			and params.scroll.fps or 10
@@ -245,7 +251,7 @@ local function init_mpris_widget(params)
 	local mpris_widget;
 	if props.scroll_enabled then
 		local scroll_widget;
-		if props.scroll_position == "vertical" then
+		if props.scroll_orientation == "vertical" then
 			mpris_textbox_middle = wibox.widget {
 				text = " ",
 				widget = wibox.widget.textbox
