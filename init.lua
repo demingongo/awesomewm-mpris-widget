@@ -146,6 +146,9 @@ local function initProps(props)
 	result.state_paused = type(params.state_paused) == "string"
 		and params.state_paused or "  "
 
+	result.title_first = type(params.title_first) == "boolean"
+		and params.title_first or false
+
 	result.max_chars = type(params.max_chars) == "number" and params.max_chars or 34
 
 	result.media_icons_default = type(params.media_icons_default) == "string"
@@ -201,6 +204,7 @@ end
 -- 	widget_dir = string,
 -- 	empty_text = string,
 --  separator = string,
+--  title_first = boolean,
 --	metadata_script_path = string,
 -- 	ignore_player = string,
 -- 	timeout = number,
@@ -384,7 +388,11 @@ local function init_mpris_widget(params)
 			content_top = player_metadata.title
 			formatted_content.text_bottom = player_metadata.artist ~= "N/A" and player_metadata.artist or ""
 		elseif player_metadata.artist ~= "N/A" and player_metadata.title ~= "N/A" then
-			content_full_text = player_metadata.artist .. props.separator .. player_metadata.title
+			if props.title_first then
+				content_full_text = player_metadata.title .. props.separator .. player_metadata.artist
+			else
+				content_full_text = player_metadata.artist .. props.separator .. player_metadata.title
+			end
 			content_top = player_metadata.title
 			formatted_content.text_bottom = player_metadata.artist
 		elseif player_metadata.title ~= "N/A" then
