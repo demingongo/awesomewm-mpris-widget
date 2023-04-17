@@ -71,6 +71,9 @@ The popup shows all MPRIS clients that have started. You can select (left-click)
 | `max_chars`| `34`| Maximum characters. Set it to `-1` to disable this parameter |
 | `empty_text` | `""` | Text when no media player is up |
 | `separator` | `" - "` | Separator between title and artist |
+| `display` | `"text"` | `"text"` or `"icon_text"` |
+| `icon_height` | `nil` | The height of the icon when `display="icon_text"` |
+| `icon_width` | `nil` | The width of the icon when `display="icon_text"` |
 | `font` | `theme.font` | Font for the widget |
 | `fg` | `theme.fg_normal` | Text color for the popup |
 | `bg` | `theme.bg_normal` | Background color for the popup |

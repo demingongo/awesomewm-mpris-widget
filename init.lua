@@ -59,8 +59,8 @@ local function initProps(props)
 		and params.widget_dir
 		or nil
 
-	result.display_type = params.display_type == "icon"
-		and params.display_type
+	result.display = params.display == "icon_text"
+		and params.display
 		or "text"
 
 	result.empty_text = type(params.empty_text) == "string"
@@ -124,6 +124,12 @@ local function initProps(props)
 	result.font = type(params.font) == "string"
 		and params.font
 		or beautiful.font
+
+	result.icon_width = type(params.icon_width) == "number"
+		and params.icon_width or nil
+
+	result.icon_height = type(params.icon_height) == "number"
+		and params.icon_height or nil
 
 	result.fg = type(params.fg) == "string"
 		and params.fg
@@ -206,7 +212,7 @@ end
 --
 -- @params {{
 -- 	widget_dir = string,
---  display_type = string,
+--  display = string,
 -- 	empty_text = string,
 --  separator = string,
 --  title_first = boolean,
@@ -214,6 +220,8 @@ end
 -- 	ignore_player = string,
 -- 	timeout = number,
 -- 	font = string,
+--  icon_height = number,
+--  icon_width = number,
 -- 	fg = string,
 -- 	bg = string,
 -- 	bgimage = gears.surface,
@@ -255,6 +263,27 @@ local function init_mpris_widget(params)
 	mpris_textbox.font = props.font
 	local mpris_textbox_middle = nil;
 	local mpris_textbox_bottom = nil;
+	local mpris_iconbox = nil;
+
+	local function get_mpris_iconbox()
+		if not mpris_iconbox then
+			mpris_iconbox = wibox.widget {
+				image = props.media_icons_default,
+				resize = true,
+				widget = wibox.widget.imagebox,
+				visible = false
+			}
+
+			if props.icon_width then
+				mpris_iconbox.forced_width = props.icon_width
+			end
+			if props.icon_height then
+				mpris_iconbox.forced_height = props.icon_height
+			end
+		end
+
+		return mpris_iconbox
+	end
 
 	-- init mpris widget
 	local mpris_widget;
@@ -269,23 +298,35 @@ local function init_mpris_widget(params)
 			mpris_textbox_bottom = wibox.widget.textbox()
 			mpris_textbox_bottom.font = props.font
 
+			local vertical_layout = {
+				layout = wibox.layout.fixed.vertical
+			}
+
+			if props.display == "icon_text" then
+				-- insert icon
+				table.insert(vertical_layout, {
+					get_mpris_iconbox(),
+					widget = wibox.container.place
+				})
+			end
+
+			-- insert textboxes
+			table.insert(vertical_layout, {
+				mpris_textbox,
+				widget = wibox.container.place
+			})
+			table.insert(vertical_layout, mpris_textbox_middle)
+			table.insert(vertical_layout, {
+				mpris_textbox_bottom,
+				widget = wibox.container.place
+			})
+
 			scroll_widget = wibox.widget {
 				layout = wibox.container.scroll.vertical,
 				step_function = props.scroll_step_function,
 				speed = props.scroll_speed,
 				{
-					{
-						{
-							mpris_textbox,
-							widget = wibox.container.place
-						},
-						mpris_textbox_middle,
-						{
-							mpris_textbox_bottom,
-							widget = wibox.container.place
-						},
-						layout = wibox.layout.fixed.vertical
-					},
+					vertical_layout,
 					top = props.scroll_margin_top,
 					bottom = props.scroll_margin_bottom,
 					widget = wibox.container.margin
@@ -298,22 +339,48 @@ local function init_mpris_widget(params)
 				widget = wibox.container.constraint
 			}
 		else
-			scroll_widget = wibox.widget {
+			local scroll_widget_layout = {
 				layout = wibox.container.scroll.horizontal,
 				max_size = props.scroll_max_size,
 				step_function = props.scroll_step_function,
-				speed = props.scroll_speed,
-				mpris_textbox,
+				speed = props.scroll_speed
 			}
+
+			if props.display == "icon_text" then
+				-- insert icon and textbox
+				table.insert(scroll_widget_layout, {
+					{
+						get_mpris_iconbox(),
+						widget = wibox.container.place
+					},
+					mpris_textbox,
+					widget = wibox.layout.align.horizontal
+				})
+			else
+				-- insert textbox
+				table.insert(scroll_widget_layout, mpris_textbox)
+			end
+
+			--
+			scroll_widget = wibox.widget(scroll_widget_layout)
 
 			mpris_widget = scroll_widget
 		end
 		scroll_widget:set_fps(props.scroll_fps)
 	else
-		mpris_widget = wibox.widget {
-			layout = wibox.container.background,
-			mpris_textbox
+		local mpris_widget_layout = {
+			layout = wibox.layout.align.horizontal,
 		}
+
+		-- insert imagebox
+		if props.display == "icon_text" then
+			table.insert(mpris_widget_layout, get_mpris_iconbox())
+		end
+
+		-- insert textbox
+		table.insert(mpris_widget_layout, mpris_textbox)
+
+		mpris_widget = wibox.widget(mpris_widget_layout)
 	end
 
 	-- init mpris popup
@@ -354,6 +421,22 @@ local function init_mpris_widget(params)
 				if not mpris_textbox_bottom.visible then
 					mpris_textbox_bottom.visible = not mpris_textbox_bottom.visible
 				end
+			end
+		end
+	}
+
+	local icon_handler = {
+		show_icon = function(icon_path)
+			if mpris_iconbox then
+				mpris_iconbox.image = icon_path or props.media_icons_default
+				if not mpris_iconbox.visible then
+					mpris_iconbox.visible = not mpris_iconbox.visible
+				end
+			end
+		end,
+		hide_icon = function()
+			if mpris_iconbox and mpris_iconbox.visible then
+				mpris_iconbox.visible = not mpris_iconbox.visible
 			end
 		end
 	}
@@ -425,21 +508,25 @@ local function init_mpris_widget(params)
 	local display_handler = {
 		display_empty_text = function()
 			mpris_textbox:set_text(props.empty_text)
+			icon_handler.hide_icon()
 			scroll_handler.hide_bottom()
 		end,
 		display_content = function (player_metadata)
-			-- format text
-			local formatted_content = format_content(player_metadata)
+			icon_handler.show_icon(player_metadata.icon)
+				--else
+				-- format text
+				local formatted_content = format_content(player_metadata)
 
-			-- set text
-			--
-			-- naughty.notify({text= "mpris: " .. formatted_content.text ~= "" and formatted_content.text or props.empty_text})
-			mpris_textbox:set_text(formatted_content.text ~= "" and formatted_content.text or props.empty_text)
-			if formatted_content.text_bottom ~= "" then
-				scroll_handler.show_bottom(formatted_content.text_bottom)
-			else
-				scroll_handler.hide_bottom()
-			end
+				-- set text
+				--
+				-- naughty.notify({text= "mpris: " .. formatted_content.text ~= "" and formatted_content.text or props.empty_text})
+				mpris_textbox:set_text(formatted_content.text ~= "" and formatted_content.text or props.empty_text)
+				if formatted_content.text_bottom ~= "" then
+					scroll_handler.show_bottom(formatted_content.text_bottom)
+				else
+					scroll_handler.hide_bottom()
+				end
+			--end
 		end
 	}
 
@@ -452,8 +539,6 @@ local function init_mpris_widget(params)
 
 		if #stdout < 2 then
 			if current_state == "closed" then return end
-			--widget:set_text(props.empty_text)
-			--scroll_handler.hide_bottom()
 			display_handler.display_empty_text()
 			if mpris_popup.visible then
 				mpris_popup.visible = not mpris_popup.visible
@@ -488,7 +573,6 @@ local function init_mpris_widget(params)
 		-- loop through players_info
 		for k, player_metadata in ipairs(players_info) do
 			-- Declare/init vars
-			local player_icon = props.media_icons_default
 			local mpris_now = {
 				state        = "N/A",
 				artist       = "N/A",
@@ -496,7 +580,8 @@ local function init_mpris_widget(params)
 				art_url      = "N/A",
 				album        = "N/A",
 				album_artist = "N/A",
-				player_name  = "N/A"
+				player_name  = "N/A",
+				icon         = props.media_icons_default
 			}
 			local link = {
 				'state',
@@ -519,19 +604,19 @@ local function init_mpris_widget(params)
 					mpris_now[link[i]] = trimmed_v ~= "" and trimmed_v or "N/A"
 				end
 				i = i + 1
-			end			
+			end
 
 			-- Display
 			if mpris_now.state ~= "N/A" then
 				-- widget's content
 				if props["media_icons_" .. mpris_now.player_name] then
-					player_icon = props["media_icons_" .. mpris_now.player_name]
+					mpris_now.icon = props["media_icons_" .. mpris_now.player_name]
 					if string.find(mpris_now.player_name, 'firefox') then
-						player_icon = props.media_icons_firefox
+						mpris_now.icon = props.media_icons_firefox
 					end
 				else
 					-- icon in system or the icon set by the widget
-					player_icon = lookup_icon_f(mpris_now.player_name) or player_icon
+					mpris_now.icon = lookup_icon_f(mpris_now.player_name) or mpris_now.icon
 				end
 
 				-- the first one in the list or/and the selected one
@@ -545,7 +630,7 @@ local function init_mpris_widget(params)
 					{
 						{
 							{
-								image = player_icon,
+								image = mpris_now.icon,
 								forced_width = 48,
 								forced_height = 48,
 								widget = wibox.widget.imagebox
@@ -596,24 +681,8 @@ local function init_mpris_widget(params)
 		main_player = new_main_player
 
 		if main_player_metadata then
-			--[[
-			-- format text
-			local formatted_content = format_content(main_player_metadata)
-
-			-- set text
-			--
-			-- naughty.notify({text= "mpris: " .. formatted_content.text ~= "" and formatted_content.text or props.empty_text})
-			widget:set_text(formatted_content.text ~= "" and formatted_content.text or props.empty_text)
-			if formatted_content.text_bottom ~= "" then
-				scroll_handler.show_bottom(formatted_content.text_bottom)
-			else
-				scroll_handler.hide_bottom()
-			end
-			--]]
 			display_handler.display_content(main_player_metadata)
 		else
-			--widget:set_text(props.empty_text)
-			--scroll_handler.hide_bottom()
 			display_handler.display_empty_text()
 		end
 
