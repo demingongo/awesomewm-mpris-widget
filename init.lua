@@ -59,6 +59,10 @@ local function initProps(props)
 		and params.widget_dir
 		or nil
 
+	result.display_type = params.display_type == "icon"
+		and params.display_type
+		or "text"
+
 	result.empty_text = type(params.empty_text) == "string"
 		and params.empty_text
 		or ""
@@ -202,6 +206,7 @@ end
 --
 -- @params {{
 -- 	widget_dir = string,
+--  display_type = string,
 -- 	empty_text = string,
 --  separator = string,
 --  title_first = boolean,
@@ -417,6 +422,27 @@ local function init_mpris_widget(params)
 		return formatted_content
 	end
 
+	local display_handler = {
+		display_empty_text = function()
+			mpris_textbox:set_text(props.empty_text)
+			scroll_handler.hide_bottom()
+		end,
+		display_content = function (player_metadata)
+			-- format text
+			local formatted_content = format_content(player_metadata)
+
+			-- set text
+			--
+			-- naughty.notify({text= "mpris: " .. formatted_content.text ~= "" and formatted_content.text or props.empty_text})
+			mpris_textbox:set_text(formatted_content.text ~= "" and formatted_content.text or props.empty_text)
+			if formatted_content.text_bottom ~= "" then
+				scroll_handler.show_bottom(formatted_content.text_bottom)
+			else
+				scroll_handler.hide_bottom()
+			end
+		end
+	}
+
 	local function internal_refresh(_, stdout)
 		local widget = mpris_textbox
 
@@ -426,8 +452,9 @@ local function init_mpris_widget(params)
 
 		if #stdout < 2 then
 			if current_state == "closed" then return end
-			widget:set_text(props.empty_text)
-			scroll_handler.hide_bottom()
+			--widget:set_text(props.empty_text)
+			--scroll_handler.hide_bottom()
+			display_handler.display_empty_text()
 			if mpris_popup.visible then
 				mpris_popup.visible = not mpris_popup.visible
 			end
@@ -569,6 +596,7 @@ local function init_mpris_widget(params)
 		main_player = new_main_player
 
 		if main_player_metadata then
+			--[[
 			-- format text
 			local formatted_content = format_content(main_player_metadata)
 
@@ -581,9 +609,12 @@ local function init_mpris_widget(params)
 			else
 				scroll_handler.hide_bottom()
 			end
+			--]]
+			display_handler.display_content(main_player_metadata)
 		else
-			widget:set_text(props.empty_text)
-			scroll_handler.hide_bottom()
+			--widget:set_text(props.empty_text)
+			--scroll_handler.hide_bottom()
+			display_handler.display_empty_text()
 		end
 
 		mpris_popup:setup(mpris_popup_rows)
