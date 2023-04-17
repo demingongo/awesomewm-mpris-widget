@@ -59,8 +59,7 @@ local function initProps(props)
 		and params.widget_dir
 		or nil
 
-	result.display = params.display == "icon_text"
-		and params.display
+	result.display = (params.display == "icon_text" or params.display == "icon") and params.display
 		or "text"
 
 	result.empty_text = type(params.empty_text) == "string"
@@ -302,7 +301,7 @@ local function init_mpris_widget(params)
 				layout = wibox.layout.fixed.vertical
 			}
 
-			if props.display == "icon_text" then
+			if string.find(props.display, 'icon') then
 				-- insert icon
 				table.insert(vertical_layout, {
 					get_mpris_iconbox(),
@@ -346,16 +345,21 @@ local function init_mpris_widget(params)
 				speed = props.scroll_speed
 			}
 
-			if props.display == "icon_text" then
-				-- insert icon and textbox
-				table.insert(scroll_widget_layout, {
+			if string.find(props.display, 'icon') then
+				-- insert icon
+				local h_layout = {
+					layout = wibox.layout.align.horizontal,
 					{
 						get_mpris_iconbox(),
 						widget = wibox.container.place
-					},
-					mpris_textbox,
-					widget = wibox.layout.align.horizontal
-				})
+					}
+				}
+
+				if string.find(props.display, 'text') then
+					-- insert textbox
+					table.insert(h_layout, mpris_textbox)
+				end
+				table.insert(scroll_widget_layout, h_layout)
 			else
 				-- insert textbox
 				table.insert(scroll_widget_layout, mpris_textbox)
@@ -372,13 +376,15 @@ local function init_mpris_widget(params)
 			layout = wibox.layout.align.horizontal,
 		}
 
-		-- insert imagebox
-		if props.display == "icon_text" then
+		if string.find(props.display, 'icon') then
+			-- insert icon
 			table.insert(mpris_widget_layout, get_mpris_iconbox())
 		end
 
-		-- insert textbox
-		table.insert(mpris_widget_layout, mpris_textbox)
+		if string.find(props.display, 'text') then
+			-- insert textbox
+			table.insert(mpris_widget_layout, mpris_textbox)
+		end
 
 		mpris_widget = wibox.widget(mpris_widget_layout)
 	end
