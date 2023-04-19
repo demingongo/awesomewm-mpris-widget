@@ -78,6 +78,7 @@ The popup shows all MPRIS clients that have started. You can select (left-click)
 | `fg` | `theme.fg_normal` | Text color for the popup |
 | `bg` | `theme.bg_normal` | Background color for the popup |
 | `bgimage` | `nil` | Background image for the popup |
+| `popup_font` | `theme.font` | Font for the popup |
 | `popup_border_width` | `1` | Border's width for the popup |
 | `popup_border_color` | `theme.bg_focus` | Border's color for the popup |
 | `popup_maximum_width` | `400` | Maximum width of the popup |

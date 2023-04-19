@@ -140,6 +140,10 @@ local function initProps(props)
 
 	result.bgimage = params.bgimage or nil
 
+	result.popup_font = type(params.popup_font) == "string"
+		and params.popup_font
+		or beautiful.font
+
 	result.popup_border_width = type(params.popup_border_width) == "number"
 		and params.popup_border_width or 1
 
@@ -224,6 +228,7 @@ end
 -- 	fg = string,
 -- 	bg = string,
 -- 	bgimage = gears.surface,
+--  popup_font = string,
 -- 	popup_border_width = number,
 -- 	popup_border_color = string,
 -- 	popup_maximum_width = number,
@@ -644,14 +649,17 @@ local function init_mpris_widget(params)
 							{
 								{
 									markup = "<b>" .. escape_f(mpris_now.title) .. "</b>",
+									font = props.popup_font,
 									widget = wibox.widget.textbox
 								},
 								{
 									text = mpris_now.artist,
+									font = props.popup_font,
 									widget = wibox.widget.textbox
 								},
 								{
 									markup = "<i>" .. escape_f(mpris_now.album ~= "N/A" and mpris_now.album or "") .. "</i>",
+									font = props.popup_font,
 									widget = wibox.widget.textbox
 								},
 								layout = wibox.layout.fixed.vertical
