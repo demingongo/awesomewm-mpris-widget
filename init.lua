@@ -518,7 +518,8 @@ local function init_mpris_widget(params)
 
 	local display_handler = {
 		display_empty_text = function()
-			mpris_textbox:set_text(props.empty_text)
+			--mpris_textbox:set_text(props.empty_text)
+			mpris_textbox:set_markup_silently(props.empty_text)
 			icon_handler.hide_icon()
 			scroll_handler.hide_bottom()
 		end,
@@ -531,7 +532,8 @@ local function init_mpris_widget(params)
 				-- set text
 				--
 				-- naughty.notify({text= "mpris: " .. formatted_content.text ~= "" and formatted_content.text or props.empty_text})
-				mpris_textbox:set_text(formatted_content.text ~= "" and formatted_content.text or props.empty_text)
+				--mpris_textbox:set_text(formatted_content.text ~= "" and formatted_content.text or props.empty_text)
+				mpris_textbox:set_markup_silently(formatted_content.text ~= "" and formatted_content.text or props.empty_text)
 				if formatted_content.text_bottom ~= "" then
 					scroll_handler.show_bottom(formatted_content.text_bottom)
 				else
