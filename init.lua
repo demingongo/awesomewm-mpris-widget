@@ -208,6 +208,9 @@ local function initProps(props)
 	if type(params.clients_running) == "function" then
 		result.clients_running = params.clients_running
 	end
+	if type(params.updated_main_player_callback) == "function" then
+		result.updated_main_player_callback = params.updated_main_player_callback
+	end
 
 	return result
 end
@@ -258,7 +261,10 @@ local function init_mpris_widget(params)
 	--
 
 	local props = initProps(params)
+
 	local main_player = ""
+	local updated_main_player = "" -- keep a level of history for "updated_main_player_callback"
+
 	local refreshing = false
 	local current_state = "started"
 
@@ -695,6 +701,12 @@ local function init_mpris_widget(params)
 		refreshing = false
 
 		main_player = new_main_player
+
+		if props.updated_main_player_callback and updated_main_player ~= main_player and main_player_metadata then
+			-- send a copy of metadata
+			props.updated_main_player_callback(gears.table.clone(main_player_metadata, true))
+		end
+		updated_main_player = main_player
 
 		if main_player_metadata then
 			display_handler.display_content(main_player_metadata)
