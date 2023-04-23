@@ -90,7 +90,7 @@ The popup shows all MPRIS clients that have started. You can select (left-click)
 | `scroll.enabled` | `false` | Enable/disable scrolling text |
 | `scroll.orientation` | `"horizontal"` | `"horizontal"` or `"vertical"` scroll |
 | `scroll.max_size` | `170` | Widget's maximum width |
-| `scroll.step_function` | `wibox.container.scroll.step_functions.waiting_nonlinear_back_and_forth` | Scrolling function |
+| `scroll.step_function` | <div style="width: 321px">`wibox.container.scroll.step_functions.waiting_nonlinear_back_and_forth`</div> | Scrolling function |
 | `scroll.speed` | `8` when `scroll.orientation="vertical"`, otherwise `20` | Scrolling speed |
 | `scroll.fps` | `10` | Scrolling fps|
 | `scroll.margin_top` | `5` | Scrolling margin top (useful when `scroll.orientation="vertical"`) |
