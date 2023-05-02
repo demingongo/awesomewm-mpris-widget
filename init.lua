@@ -208,8 +208,8 @@ local function initProps(props)
 	if type(params.clients_running) == "function" then
 		result.clients_running = params.clients_running
 	end
-	if type(params.updated_main_player_callback) == "function" then
-		result.updated_main_player_callback = params.updated_main_player_callback
+	if type(params.updated_callback) == "function" then
+		result.updated_callback = params.updated_callback
 	end
 
 	return result
@@ -263,7 +263,7 @@ local function init_mpris_widget(params)
 	local props = initProps(params)
 
 	local main_player = ""
-	local updated_main_player = "" -- keep a level of history for "updated_main_player_callback"
+	local mdata = nil
 
 	local refreshing = false
 	local current_state = "started"
@@ -567,6 +567,8 @@ local function init_mpris_widget(params)
 			if props.all_clients_closed then
 				props.all_clients_closed()
 			end
+
+			mdata = nil
 			return
 		end
 
@@ -702,16 +704,27 @@ local function init_mpris_widget(params)
 
 		main_player = new_main_player
 
-		if props.updated_main_player_callback and updated_main_player ~= main_player and main_player_metadata then
-			-- send a copy of metadata
-			props.updated_main_player_callback(gears.table.clone(main_player_metadata, true))
-		end
-		updated_main_player = main_player
-
 		if main_player_metadata then
 			display_handler.display_content(main_player_metadata)
+			if props.updated_callback then
+				if not mdata then
+					props.updated_callback(gears.table.clone(main_player_metadata, true))
+				else
+					local changedkey = gears.table.find_first_key(main_player_metadata, function (k, v)
+						return mdata[k] ~= v
+					end, false)
+					if changedkey then
+						props.updated_callback(gears.table.clone(main_player_metadata, true))
+					end
+				end
+			end
+			mdata = main_player_metadata
 		else
 			display_handler.display_empty_text()
+			if props.updated_callback and mdata then
+				props.updated_callback(nil)
+			end
+			mdata = nil
 		end
 
 		mpris_popup:setup(mpris_popup_rows)
