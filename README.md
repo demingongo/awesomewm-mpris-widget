@@ -51,6 +51,11 @@ mpris_widget:previous()
 
 -- play next media
 mpris_widget:next()
+
+---select a running player to control
+---if not found, it will select one that is running
+---@param player_name string the name of the player (e.g.: "spotify")
+mpris_widget:select_player(player_name)
 ```
 
 **Left-click** the widget with your mouse to **play/pause** the media player displaying its info.

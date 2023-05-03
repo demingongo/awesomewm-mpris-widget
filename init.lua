@@ -766,6 +766,16 @@ local function init_mpris_widget(params)
 		run_control("next")
 	end
 
+	---Select a running player to control
+	---@param player_name string
+	function mpris_widget:select_player(player_name)
+		if type(player_name) == "string" and player_name ~= main_player then
+			main_player = player_name
+			refresh()
+		end
+		return self
+	end
+
 	-- EVENT LISTENERS
 	--
 
