@@ -11,7 +11,7 @@
 local gears = require("gears")
 local wibox = require("wibox")
 local awful = require("awful")
-local escape_f = require("awful.util").escape;
+local escape_f = require("gears.string").xml_escape;
 local lookup_icon_f = require("menubar.utils").lookup_icon
 local beautiful = require("beautiful")
 -- local naughty = require("naughty")
@@ -509,10 +509,10 @@ local function init_mpris_widget(params)
 		end
 
 		if mpris_textbox_bottom then
-			formatted_content.text = ellipsize(state_text .. state_separator .. content_top, props.max_chars)
+			formatted_content.text = ellipsize(state_text .. state_separator .. escape_f(content_top), props.max_chars)
 			formatted_content.text_bottom = ellipsize(formatted_content.text_bottom, props.max_chars)
 		else
-			formatted_content.text = ellipsize(state_text .. state_separator .. content_full_text, props.max_chars)
+			formatted_content.text = ellipsize(state_text .. state_separator .. escape_f(content_full_text), props.max_chars)
 		end
 		-- add space at the end for horizontal scroll
 		if props.scroll_enabled and not mpris_textbox_bottom then
