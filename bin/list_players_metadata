@@ -53,7 +53,7 @@ do  # get metadata for each player
 		result="""$result
 """
     	fi
-	result="$result$player_metadata"
+	result="$result$player_metadata; ${player}"
     fi
 done
 

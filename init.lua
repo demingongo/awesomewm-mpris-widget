@@ -5,8 +5,6 @@
 -- Availability: https://github.com/demingongo/awesomewm-mpris-widget
 
 -- URGENT: noticed that text didn't always refresh in horizontal scroll containers. fix that
--- TODO: preferred player
--- TODO: Find a way to display artUrl (download it and cache it maybe?)
 
 local gears = require("gears")
 local wibox = require("wibox")
@@ -602,6 +600,7 @@ local function init_mpris_widget(params)
 				album        = "N/A",
 				album_artist = "N/A",
 				player_name  = "N/A",
+				instance 	 = "N/A",
 				icon         = props.media_icons_default
 			}
 			local link = {
@@ -611,7 +610,8 @@ local function init_mpris_widget(params)
 				'art_url',
 				'album',
 				'album_artist',
-				'player_name'
+				'player_name',
+				'instance'
 			}
 
 			-- Fill mpris_now
@@ -625,6 +625,9 @@ local function init_mpris_widget(params)
 					mpris_now[link[i]] = trimmed_v ~= "" and trimmed_v or "N/A"
 				end
 				i = i + 1
+			end
+			if mpris_now.instance == "N/A" then
+				mpris_now.instance = mpris_now.player_name
 			end
 
 			-- Display
@@ -641,8 +644,8 @@ local function init_mpris_widget(params)
 				end
 
 				-- the first one in the list or/and the selected one
-				if not main_player_metadata or main_player ~= "" and mpris_now.player_name == main_player then
-					new_main_player = mpris_now.player_name
+				if not main_player_metadata or main_player ~= "" and mpris_now.instance == main_player then
+					new_main_player = mpris_now.instance
 					main_player_metadata = mpris_now
 				end
 
@@ -684,15 +687,15 @@ local function init_mpris_widget(params)
 				}
 				popup_row:connect_signal("button::release", function(self, _, _, button)
 					if button == 1 then
-						if main_player ~= mpris_now.player_name then
-							main_player = mpris_now.player_name
+						if main_player ~= mpris_now.instance then
+							main_player = mpris_now.instance
 							-- naughty.notify({text= "main player is now ".. main_player})
 							internal_refresh(widget, stdout)
 						end
 					end
 				end)
 				-- add row
-				if mpris_now.player_name == new_main_player then
+				if mpris_now.instance == new_main_player then
 					table.insert(mpris_popup_rows, 1, popup_row)
 				else
 					table.insert(mpris_popup_rows, popup_row)
