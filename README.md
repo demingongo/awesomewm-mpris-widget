@@ -103,3 +103,4 @@ The popup shows all MPRIS clients that have started. You can select (left-click)
 | `all_clients_closed` | `nil` | Function to execute when all media players got closed |
 | `clients_running` | `nil` | Function to execute when media players started |
 | `updated_callback` | `nil` | Function to execute when main media player gets updated |
+| `create_popup_row` | `nil` | Function that should return a widget that will represent a row for the popup |

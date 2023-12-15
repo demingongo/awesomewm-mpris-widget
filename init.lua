@@ -209,6 +209,9 @@ local function initProps(props)
 	if type(params.updated_callback) == "function" then
 		result.updated_callback = params.updated_callback
 	end
+	if type(params.create_popup_row) == "function" then
+		result.create_popup_row = params.create_popup_row
+	end
 
 	return result
 end
@@ -650,50 +653,80 @@ local function init_mpris_widget(params)
 				end
 
 				-- popup content
-				local popup_row = wibox.widget {
-					{
+				local popup_row = nil
+				local select_player_f = function()
+					if main_player ~= mpris_now.instance then
+						main_player = mpris_now.instance
+						-- naughty.notify({text= "main player is now ".. main_player})
+						internal_refresh(widget, stdout)
+					end
+				end
+				-- if custom popup row creator
+				if props.create_popup_row then
+					local metadata = gears.table.clone(mpris_now, true)
+					metadata.is_selected = mpris_now.instance == main_player
+					local function _refresh()
+						awful.spawn.easy_async_with_shell(get_list_metadata_cmd(), function(stdout)
+							internal_refresh(mpris_textbox, stdout)
+						end)
+					end
+					function metadata:play_pause()
+						awful.spawn.easy_async_with_shell("playerctl play-pause --player=" .. mpris_now.instance, _refresh)
+					end
+					function metadata:previous()
+						awful.spawn.easy_async_with_shell("playerctl previous --player=" .. mpris_now.instance, _refresh)
+					end
+					function metadata:next()
+						awful.spawn.easy_async_with_shell("playerctl next --player=" .. mpris_now.instance, _refresh)
+					end
+					function metadata:select()
+						select_player_f()
+					end
+					popup_row = props.create_popup_row(metadata)
+				end
+				-- if popup_row is still nil
+				if not popup_row then
+					popup_row = wibox.widget {
 						{
 							{
-								image = mpris_now.icon,
-								forced_width = 48,
-								forced_height = 48,
-								widget = wibox.widget.imagebox
+								{
+									image = mpris_now.icon,
+									forced_width = 48,
+									forced_height = 48,
+									widget = wibox.widget.imagebox
+								},
+								{
+									{
+										markup = "<b>" .. escape_f(mpris_now.title) .. "</b>",
+										font = props.popup_font,
+										widget = wibox.widget.textbox
+									},
+									{
+										text = mpris_now.artist,
+										font = props.popup_font,
+										widget = wibox.widget.textbox
+									},
+									{
+										markup = "<i>" .. escape_f(mpris_now.album ~= "N/A" and mpris_now.album or "") .. "</i>",
+										font = props.popup_font,
+										widget = wibox.widget.textbox
+									},
+									layout = wibox.layout.fixed.vertical
+								},
+								spacing = 12,
+								layout = wibox.layout.fixed.horizontal
 							},
-							{
-								{
-									markup = "<b>" .. escape_f(mpris_now.title) .. "</b>",
-									font = props.popup_font,
-									widget = wibox.widget.textbox
-								},
-								{
-									text = mpris_now.artist,
-									font = props.popup_font,
-									widget = wibox.widget.textbox
-								},
-								{
-									markup = "<i>" .. escape_f(mpris_now.album ~= "N/A" and mpris_now.album or "") .. "</i>",
-									font = props.popup_font,
-									widget = wibox.widget.textbox
-								},
-								layout = wibox.layout.fixed.vertical
-							},
-							spacing = 12,
-							layout = wibox.layout.fixed.horizontal
+							margins = 8,
+							widget = wibox.container.margin
 						},
-						margins = 8,
-						widget = wibox.container.margin
-					},
-					widget = wibox.container.background
-				}
-				popup_row:connect_signal("button::release", function(self, _, _, button)
-					if button == 1 then
-						if main_player ~= mpris_now.instance then
-							main_player = mpris_now.instance
-							-- naughty.notify({text= "main player is now ".. main_player})
-							internal_refresh(widget, stdout)
+						widget = wibox.container.background
+					}
+					popup_row:connect_signal("button::release", function(self, _, _, button)
+						if button == 1 then
+							select_player_f()
 						end
-					end
-				end)
+					end)
+				end
 				-- add row
 				if mpris_now.instance == new_main_player then
 					table.insert(mpris_popup_rows, 1, popup_row)
