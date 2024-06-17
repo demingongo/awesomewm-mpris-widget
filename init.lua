@@ -787,6 +787,11 @@ local function init_mpris_widget(params)
 		run_cmd_and_refresh(cmd)
 	end
 
+	local function playerctl_seek_position(position)
+		local seek_cmd = "playerctl --player=" .. main_player .. " position " .. position
+		run_cmd_and_refresh(seek_cmd)
+	end
+
 	-- PUBLIC METHODS
 	--
 
@@ -832,6 +837,28 @@ local function init_mpris_widget(params)
 			end
 		end
 	end)
+
+
+	-- TOOLTIP
+	--
+	
+	mpris_widget:connect_signal("button::press", function(_, _, _, button)
+		if button == 4 or button == 5 then
+			-- Mouse wheel up or down
+			local position_output = io.popen("playerctl -p " .. main_player .. " position")
+			local position_str = position_output:read("*a")
+			position_output:close()
+
+			local current_position = tonumber(position_str)
+
+			if current_position ~= nil then 
+				-- Calculate the new position based on the scroll direction
+				local offset = (button == 4) and 5 or -5
+				local new_position = math.max(0, current_position + offset)
+				playerctl_seek_position(new_position)
+			end
+	end)
+
 
 	-- WATCHERS
 	--
