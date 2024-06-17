@@ -841,7 +841,24 @@ local function init_mpris_widget(params)
 
 	-- TOOLTIP
 	--
-	
+	local mpris_widget_tooltip = awful.tooltip {
+		objects = { mpris_widget },
+		timer_function = function()
+			local command = "playerctl metadata --player=" .. main_player .. " --format 'Status: {{status}}\nTitle: {{xesam:title}}\nArtist: {{xesam:artist}}\nAlbum: {{xesam:album}}\nDuration: {{duration(position)}}/{{duration(mpris:length)}}'"
+			local f = io.popen(command)
+			local output = f:read("*a")
+			f:close()
+
+			-- Check if output is nil
+			if output then
+				return output:gsub("\n$", "")  -- Remove trailing newline
+			else
+				return "No metadata available"
+			end
+		end,
+	}
+
+
 	mpris_widget:connect_signal("button::press", function(_, _, _, button)
 		if button == 4 or button == 5 then
 			-- Mouse wheel up or down
@@ -857,6 +874,8 @@ local function init_mpris_widget(params)
 				local new_position = math.max(0, current_position + offset)
 				playerctl_seek_position(new_position)
 			end
+
+		end
 	end)
 
 
