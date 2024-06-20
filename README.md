@@ -47,15 +47,28 @@ mywibar:setup({
 my_mpris_widget:play_pause()
 
 -- play previous media
-mpris_widget:previous()
+my_mpris_widget:previous()
 
 -- play next media
-mpris_widget:next()
+my_mpris_widget:next()
+
+-- go 5 seconds forward
+my_mpris_widget:step_forward(5)
+-- idem
+my_mpris_widget:seek_position("5+")
+
+-- go 5 seconds backward
+my_mpris_widget:step_backward(5)
+-- idem
+my_mpris_widget:seek_position("5-")
+
+-- go at the 78th second
+my_mpris_widget:seek_position("78")
 
 ---select a running player to control
 ---if not found, it will select one that is running
 ---@param player_name string the name of the player (e.g.: "spotify")
-mpris_widget:select_player(player_name)
+my_mpris_widget:select_player(player_name)
 ```
 
 **Left-click** the widget with your mouse to **play/pause** the media player displaying its info.

@@ -46,7 +46,7 @@ result=""
 
 for player in $players
 do  # get metadata for each player
-    player_metadata=$(playerctl -f '{{status}} ;{{xesam:artist}} ;{{xesam:title}} ;{{mpris:artUrl}} ;{{xesam:album}} ;{{xesam:albumArtist}} ;{{playerName}}' metadata --player="$player" 2> /dev/null)
+    player_metadata=$(playerctl -f '{{status}} ;{{xesam:artist}} ;{{xesam:title}} ;{{mpris:artUrl}} ;{{xesam:album}} ;{{xesam:albumArtist}} ;{{playerName}} ;{{mpris:length}} ;{{position}}' metadata --player="$player" 2> /dev/null)
     
     if [ -n "$player_metadata" ]; then
 	if [ -n "$result" ]; then

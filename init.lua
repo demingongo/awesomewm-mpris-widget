@@ -269,6 +269,9 @@ local function init_mpris_widget(params)
 	local refreshing = false
 	local current_state = "started"
 
+	-- for safety control
+	local control_running = false
+
 	-- init textboxes
 	local mpris_textbox = wibox.widget.textbox();
 	mpris_textbox.font = props.font
@@ -596,15 +599,18 @@ local function init_mpris_widget(params)
 		for k, player_metadata in ipairs(players_info) do
 			-- Declare/init vars
 			local mpris_now = {
-				state        = "N/A",
-				artist       = "N/A",
-				title        = "N/A",
-				art_url      = "N/A",
-				album        = "N/A",
-				album_artist = "N/A",
-				player_name  = "N/A",
-				instance 	 = "N/A",
-				icon         = props.media_icons_default
+				state          = "N/A",
+				artist         = "N/A",
+				title          = "N/A",
+				art_url        = "N/A",
+				album          = "N/A",
+				album_artist   = "N/A",
+				player_name    = "N/A",
+				instance       = "N/A",
+				total_length   = "N/A",
+				position       = "N/A",
+				--remaining_time = "N/A",
+				icon           = props.media_icons_default
 			}
 			local link = {
 				'state',
@@ -614,6 +620,8 @@ local function init_mpris_widget(params)
 				'album',
 				'album_artist',
 				'player_name',
+				'total_length',
+				'position',
 				'instance'
 			}
 
@@ -678,6 +686,15 @@ local function init_mpris_widget(params)
 					end
 					function metadata:next()
 						awful.spawn.easy_async_with_shell("playerctl next --player=" .. mpris_now.instance, _refresh)
+					end
+					function metadata:seek_position(offset)
+						awful.spawn.easy_async_with_shell("playerctl position " .. offset .. " --player=" .. mpris_now.instance, _refresh)
+					end
+					function metadata:step_forward(step)
+						metadata:seek_position(tostring(step) .. "+")
+					end
+					function metadata:step_backward(step)
+						metadata:seek_position(tostring(step) .. "-")
 					end
 					function metadata:select()
 						select_player_f()
@@ -771,6 +788,7 @@ local function init_mpris_widget(params)
 
 	local function refresh()
 		awful.spawn.easy_async_with_shell(get_list_metadata_cmd(), function(stdout)
+			control_running = false
 			internal_refresh(mpris_textbox, stdout)
 		end)
 	end
@@ -780,6 +798,10 @@ local function init_mpris_widget(params)
 	end
 
 	local function run_control(control_cmd)
+		if control_running then
+			return
+		end
+		control_running = true
 		local cmd = "playerctl " .. control_cmd
 		if main_player ~= "" then
 			cmd = cmd .. " --player=" .. main_player
@@ -800,6 +822,22 @@ local function init_mpris_widget(params)
 
 	function mpris_widget:next()
 		run_control("next")
+	end
+
+	---@param offset string
+	function mpris_widget:seek_position(offset)
+		run_control("position " .. offset)
+	end
+
+	---@param step number in seconds
+	function mpris_widget:step_forward(step)
+		mpris_widget:seek_position(tostring(step) .. "+")
+	end
+
+	---@param step number in seconds
+	function mpris_widget:step_backward(step)
+		--mpris_widget:step_forward(-step)
+		mpris_widget:seek_position(tostring(step) .. "-")
 	end
 
 	---Select a running player to control
