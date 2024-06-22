@@ -55,7 +55,7 @@ The popup shows all MPRIS clients that have started. You can select (left-click)
 
 ## Events
 
-[wiki/Actions](https://github.com/demingongo/awesomewm-mpris-widget/wiki/Events)
+[wiki/Events](https://github.com/demingongo/awesomewm-mpris-widget/wiki/Events)
 
 ## Methods
 
